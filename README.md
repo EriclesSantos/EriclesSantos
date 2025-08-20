@@ -1,13 +1,13 @@
 
 <!-- Banner Inicial -->
 <div align="center">
-  <h1> Olá, sou <span style="color:#4CAF50;">Ericles</span></h1>
-  <h3>💻 Futuro Dev Full Stack | Apaixonado por Tecnologia e Aprendizado</h3>
-  <p>"Onde bugs se tornam aprendizados e ideias se tornam apps"</p>
-  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXFwYTN4YWJyZDJ5amI5M2E1aWNzaGQyMnI3eTA0Z21zYXB0MG4yYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Cd7Y7tJ4pHbGM/giphy.gif"/>
+  <h1><code> Olá, sou <span style="color:#4CAF50;">Ericles</span></code></h1>
+  <h3><code> Futuro Dev Full Stack | Apaixonado por Tecnologia</code>  </h3>
+  <p><code>Onde bugs se tornam aprendizados e ideias se tornam apps</code>  </p>
+  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXFwYTN4YWJyZDJ5amI5M2E1aWNzaGQyMnI3eTA0Z21zYXB0MG4yYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Cd7Y7tJ4pHbGM/giphy.gif" alt="Coding GIF" width="300"/>
 </div>
 
-📖 Hoje eu estudo algumas tecnologias como:  
+<code> Hoje eu estudo algumas tecnologias como:  </code>
 
 <div style="display: inline_block"><br>
   <img align="center" alt="JS" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-plain.svg">
