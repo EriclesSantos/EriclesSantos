@@ -1,6 +1,29 @@
-## Olá Eu sou o ERICLES
+## Olá Eu sou o ERICLES futuro dev Full Stack
 
 
-- 🔭 Hoje eu trabalho como analista de monitoramento.
-- 🌱 Hoje eu estudo programação JS/JAVA/PYTHON/SQL ..
-- 📫 Contate-me no email:ericles.gt@gmail.com
+📖Hoje eu estudo algumas coisas como...
+<div style="display: inline_block"><br>
+  <img align="center" alt="" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-plain.svg">
+  <img align="center" alt="" height="30" width="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original.svg">
+  <img align="center" alt="Rafa-Python" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg">
+  <img align="center" alt="" height="30" width="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/bootstrap/bootstrap-original.svg" />
+
+  <img align="center" alt="Rafa-HTML" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/html5/html5-original.svg">
+  <img align="center" alt="Rafa-CSS" height="30" width="40" src="https://raw.githubusercontent.com/devicons/devicon/master/icons/css3/css3-original.svg">
+  
+ 
+</div>
+  
+  ##
+ 
+<div> 
+  <a href = "ericles.gt@gmail.com"><img src="https://img.shields.io/badge/-Gmail-%23333?style=for-the-badge&logo=gmail&logoColor=white" target="_blank"></a>
+  <a href="www.linkedin.com/in/ericles-mouradev" target="_blank"><img src="https://img.shields.io/badge/-LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white" target="_blank"></a> 
+  
+</div>
+
+<a href="https://git.io/streak-stats">
+  <img height="170" src="https://streak-stats.demolab.com?user=SEU_USUARIO&theme=tokyonight&date_format=j%20M%5B%20Y%5D" />
+</a>
+
+
