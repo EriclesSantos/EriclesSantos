@@ -6,7 +6,7 @@
 
   <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=22&center=true&lines=Futuro+Dev+Full+Stack+|+Apaixonado+por+Tecnologia;" alt="Typing SVG"/>
 
-  <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=18&center=true&lines=Onde+bugs+se+tornam+aprendizados+e+ideias+se+tornam+apps;" alt="Typing SVG"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=15&center=true&lines=Onde+Bugs+Se+Tornam+Aprendizados+e+Ideias+Se+Tornam+Apps;" alt="Typing SVG"/>
   
 </div>
 <div align="center">
