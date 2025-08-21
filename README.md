@@ -1,4 +1,4 @@
-<img widht= "100vw" src="https://capsule-render.vercel.app/api?type=waving&heigth-110&color=#5e9188"/>
+<img widht= "100vw" src="https://capsule-render.vercel.app/api?type=waving&heigth-110&color=#7a1745"/>
 <!-- Banner Inicial -->
 <div align="center">
   <h1><code> Olá, sou <span style="color:#4CAF50;">Ericles</span></code></h1>
