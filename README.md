@@ -2,11 +2,11 @@
 <!-- Banner Inicial -->
 
 <div align="center" width="100%">
-  <img src="https://readme-typing-svg.demolab.com?font=Dina&color=FFFFFF&width=900&size=30&center=true&lines=Hi+I+am+Ericles;I'm+a+Student+of+Analysis+and+Systems+Development;" alt="Typing SVG"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&color=FFFFFF&width=900&size=30&center=true&lines=Hi+I+am+Ericles;I'm+a+Student+of+Analysis+and+Systems+Development;" alt="Typing SVG"/>
 
-  <img src="https://readme-typing-svg.demolab.com?font=Dina&color=FFFFFF&width=900&size=22&center=true&lines=Futuro+Development+Full+Stack+|+Apaixonado+por+Tecnologia;" alt="Typing SVG"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&color=FFFFFF&width=900&size=22&center=true&lines=Futuro+Development+Full+Stack+|+Apaixonado+por+Tecnologia;" alt="Typing SVG"/>
 
-  <img src="https://readme-typing-svg.demolab.com?font=Dina&color=FFFFFF&width=900&size=15&center=true&lines=Onde+Bugs+Se+Tornam+Aprendizados+e+Ideias+Se+Tornam+Apps;" alt="Typing SVG"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Press+Start+2P&color=FFFFFF&width=900&size=15&center=true&lines=Onde+Bugs+Se+Tornam+Aprendizados+e+Ideias+Se+Tornam+Apps;" alt="Typing SVG"/>
   
 </div>
 <div align="center">
