@@ -2,7 +2,7 @@
 <!-- Banner Inicial -->
 
 <div align="center" width="100%">
-  <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=30&center=true&lines=Hi+I+am+ Ericles;I'm+a+Student+of+Analysis+and+Systems+Development;" alt="Typing SVG"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=30&center=true&lines=Hi+I+am+Ericles;I'm+a+Student+of+Analysis+and+Systems+Development;" alt="Typing SVG"/>
 
   <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=6409FFFF&width=900&size=22&center=true&lines=Futuro+Dev+Full+Stack+|+Apaixonado+por+Tecnologia;" alt="Typing SVG"/>
 
