@@ -10,9 +10,7 @@
   
 </div>
 <div align="center">
-  <h1><code> Olá, sou <span style="color:#4CAF50;">Ericles</span></code></h1>
-  <h3><code> Futuro Dev Full Stack | Apaixonado por Tecnologia</code>  </h3>
-  <p><code>Onde bugs se tornam aprendizados e ideias se tornam apps</code>  </p>
+  
   <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExOXFwYTN4YWJyZDJ5amI5M2E1aWNzaGQyMnI3eTA0Z21zYXB0MG4yYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Cd7Y7tJ4pHbGM/giphy.gif" alt="Coding GIF" width="300"/>
 </div>
 
