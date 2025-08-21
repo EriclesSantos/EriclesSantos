@@ -1,7 +1,9 @@
 <img widht= "100vw" src="https://capsule-render.vercel.app/api?type=waving&heigth-110&color=457d97"/>
 <!-- Banner Inicial -->
-<img widht ="100vw src="https://readme-typing-svg.herokuapp.com?font=Pixelify+Sans&size=40&pause=1000&color=6409FF&width=435&lines=Bem-vindo+ao+meu+reposit%C3%B3rio+sou%2C+ERICLES"/>
-
+<div align="center" width="100%">
+  <img src="https://readme-typing-svg.demolab.com?font=Iosevka&color=9745f5&width=900&size=22&center=true&lines=I+am+from+Brazil;I'm+a+student+of+Analysis+and+Systems+Development;I'm+also+a+Designer;Be+welcome!" alt="Typing SVG"/>
+  
+</div>
 <div align="center">
   <h1><code> Olá, sou <span style="color:#4CAF50;">Ericles</span></code></h1>
   <h3><code> Futuro Dev Full Stack | Apaixonado por Tecnologia</code>  </h3>
