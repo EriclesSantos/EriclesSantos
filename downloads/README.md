@@ -1,23 +1,35 @@
 # SwitchPhone Controller — experimental
 
-[Baixar APK Android 0.2.5](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.5-experimental.apk) · [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt)
+[Baixar APK Android 0.2.6](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.6-experimental.apk) · [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt)
 
-[Comparação técnica: SwitchPhone, PS4 e PS5](comparacao-bluetooth.md) — leitura no navegador, sem instalar ferramentas. Novas coletas suspensas a pedido do usuário.
+## Testes novos: vínculo e canal HID
 
-## Estado atual
+Instala como atualização da 0.2.1–0.2.5 com a mesma assinatura. No app, abra **Início → Switch experimental → Escolher teste de conexão**.
+
+| Opção | Comportamento |
+| --- | --- |
+| Padrão | Aguarda entrada do Switch e encerra se o vínculo cair, como antes. |
+| Teste 1 • vínculo (12s) | Na primeira perda, mantém nome e HID por até 12 s para receber novo vínculo ou canal. Não cria vínculo ou reabre permissões. Só vale com HID ainda registrado/READY e sem canal. |
+| Teste 2 • abrir HID (5s) | Com vínculo estável por 5 s e nenhum canal em andamento, verifica o vínculo Android e solicita uma única abertura HID pelo celular. |
+| Teste 3 • vínculo + HID | Combina os dois caminhos. |
+
+1. Comece pelo **Teste 1**, toque **Parear** e aceite as confirmações Android.
+2. Aguarde **HID registrado** no app. Só então abra **Controles → Mudar ordem/modo de segurar** no Switch. Aceite **Associer** sem contatos, se aparecer.
+3. Com pontos verdes, use **Confirmar L+R**. Verde confirma canal HID; negociação Nintendo e resposta no jogo são verificações separadas.
+4. Se falhar, use **Diagnóstico → Copiar** antes de começar outro teste. Repita com **Teste 2** e depois **Teste 3**, em tentativas separadas.
+
+O diagnóstico identifica o teste, a janela utilizada e a abertura solicitada. A janela não se prolonga por eventos repetidos e não renova os 120 s de visibilidade. Uma segunda perda ou erro nativo encerra a tentativa. Nenhum coletor adicional é necessário. O modo PC continua com a política padrão.
+
+## Validação e limites
+
+Build/lint, 2.544 asserções JVM, assinatura e alinhamento aprovados. APK não depurável, versionCode 8, 123639 bytes. Testes automatizados cobrem os rastros físicos recebidos e os limites das novas políticas. A interface e o rádio dessa versão ainda precisam do teste físico; não há correção definitiva do Switch demonstrada.
 
 - Windows: usuário confirmou reconhecimento e resposta às entradas do HID genérico com Xiaomi/Android 16. O destino Nintendo também abriu HID no Windows, sem negociação Nintendo.
-- Switch: ainda sem sucesso demonstrado. O vínculo cai antes de abrir HID; motivos recebidos não identificaram a causa. Galaxy teve comportamento semelhante segundo relato, sem modelo/Android/log específicos.
+- Switch: logs anteriores mostram perda de vínculo antes do HID. Galaxy apresentou comportamento semelhante por relato. Os dados não identificaram a causa exata.
 - MissionControl v0.14.2: módulo e 59 patches enviados idênticos aos oficiais; processo On relatado após reinício. Um controle PS4/PS5 conectou e funcionou no console.
 
-O app usa emulação parcial Nintendo. MissionControl suporta Sony e vários controles genéricos; até controles ainda sem mapeamento podem parear. Portanto IDs Sony/driver dedicado não são requisitos universais de pareamento. A API Android empregada não permite definir VID/PID Sony/Nintendo. Trocar nome/layout não reproduz um controle Sony. A comparação completa distingue esses fatos das hipóteses sobre a perda do vínculo. Nenhum novo APK foi publicado nesta análise e não há correção física definitiva comprovada para Switch.
+[Comparação técnica dos controles](comparacao-bluetooth.md), disponível no navegador. MissionControl também aceita controles genéricos: driver/IDs Sony não são requisitos universais de pareamento. Os testes desta versão modificam o gerenciamento da tentativa no app; não alteram autenticação, VID/PID ou política Bluetooth do Android.
 
-## APK 0.2.5
+Android 9+, sem root/Internet/telemetria. PC é HID genérico, não XInput. Emulação Nintendo parcial, sem IMU/NFC/rumble do jogo/pareamento manual por chaves. Assinatura própria não garante retirada de aviso do Play Protect.
 
-Mantém a assinatura da 0.2.1–0.2.4 e instala como atualização. Pontos verdes indicam canal HID; negociação Nintendo pendente aparece separadamente. A versão alterou indicação visual, sem mudar o pareamento. Build/lint, assinatura/alinhamento e 2.486 asserções JVM aprovados; teste físico da atualização ainda não confirmado.
-
-Android 9+, sem root/Internet/telemetria no APK. PC é HID genérico, não XInput. Sem IMU/NFC/rumble do jogo/pareamento manual com chaves. Assinatura própria não garante retirada de aviso do Play Protect.
-
-[Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt). APKs e ferramentas anteriores permanecem como histórico, sem solicitação de nova coleta.
-
-Esclarecimento: os controles paralelos relatados pelo usuário reforçam que falta de driver Sony não explica esta falha pré-HID. A comparação foi corrigida; autenticação, anúncio de serviço e verificações de classe continuam candidatos sem causa comprovada. Nenhuma nova coleta foi solicitada.
+[Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt). APKs e ferramentas anteriores permanecem como histórico; novas coletas USB estão suspensas.

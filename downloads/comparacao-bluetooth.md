@@ -42,7 +42,7 @@ A camada a corrigir é a interoperabilidade antes do canal HID, envolvendo a ide
 
 Uma integração dedicada no MissionControl só é uma alternativa para a etapa posterior de tradução de entradas, se necessária; não está demonstrada como solução da perda pré-HID: o app já tem relatório genérico próprio e funcional no Windows; um driver correspondente poderia reconhecer esse serviço e traduzir seus campos para Switch. Isso exige desenvolvimento/coerência de identificação e validação no console. Não está implementado nem garante resolver uma eventual incompatibilidade de autenticação anterior. Também não exige fingir identidade Sony. Outra arquitetura possível seria uma ponte de rede/homebrew, mas ela muda o transporte solicitado e não foi adotada silenciosamente.
 
-Estado honesto da entrega: PC funcional no escopo relatado; Switch experimental ainda sem conexão demonstrada. Não se recomenda atualizar/apagar configurações do console ou fazer root com base nesses dados. Não foram criados novos coletores nem outro APK nesta comparação.
+Estado honesto da entrega: PC funcional no escopo relatado; Switch experimental ainda sem conexão demonstrada. Não se recomenda atualizar/apagar configurações do console ou fazer root com base nesses dados. Esta comparação foi documental. A atualização posterior 0.2.6 implementa testes opcionais de vínculo/canal HID, ainda sem sucesso físico confirmado.
 
 ## Fontes efetivamente inspecionadas
 
@@ -60,4 +60,8 @@ A recomendação anterior de um driver próprio foi prematura como correção de
 
 O bloqueio observado fica no estabelecimento do vínculo/enlace HID. Candidatos são autenticação/segurança, anúncio SDP/HID e verificações de classe/aceitação específicas ao aparelho. O nome Pro Controller não comprova equivalência nesses campos. Não há código HCI nos dados enviados que permita escolher entre esses candidatos; não se declara causa Android 16, classe de telefone ou falta de patch como comprovada. Arquivos de patches conferidos não comprovam aplicação em memória; um controle funcionando não exercita necessariamente todas as verificações exigidas por outro.
 
-Fonte exata: [README MissionControl 0.14.2, Other Controllers](https://github.com/ndeadly/MissionControl/blob/e8d4623c/README.md#other-controllers), parágrafo que começa Controllers that successfully pair but haven't been officially supported yet; e default UnknownController em controller_management.cpp da mesma release. Revisão documental somente, sem novo APK, coletor ou pedido de teste.
+Fonte exata: [README MissionControl 0.14.2, Other Controllers](https://github.com/ndeadly/MissionControl/blob/e8d4623c/README.md#other-controllers), parágrafo que começa Controllers that successfully pair but haven't been officially supported yet; e default UnknownController em controller_management.cpp da mesma release. Essa revisão foi documental; veja a atualização experimental posterior abaixo.
+
+## Atualização posterior: testes opcionais 0.2.6
+
+A pedido do usuário, o app passou a permitir manter o registro HID por até 12 s após a primeira perda do vínculo e solicitar uma única abertura de canal após 5 s de vínculo estável. São opções separadas e combináveis no Início → Escolher teste de conexão, sem mudar autenticação ou identidade do rádio. O modo Padrão continua passivo. Isso testa duas decisões do aplicativo antes de concluir que dependem exclusivamente do stack/console. Nenhuma hipótese foi convertida em causa comprovada. Veja as instruções do APK no README.
