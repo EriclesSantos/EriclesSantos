@@ -2,7 +2,7 @@
 
 [Baixar APK Android 0.2.5](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.5-experimental.apk)
 
-[Baixar coletor USB 1.2.0 para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows-1.2.0.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
+[Baixar coletor USB 1.3.0 para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows-1.3.0.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
 
 [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt) · [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt)
 
@@ -51,3 +51,13 @@ Primeiro abra **Ler-ultima-tentativa.cmd**, na pasta extraída do novo coletor. 
 A 1.2.0 aceita variações de prefixo/separador/caixa/decimal/hex em campos conhecidos, procura avisos nativos de falha HCI e exporta somente números e contagens de marcadores fixos. Não exporta linhas, MAC, chaves, serial ou nomes. Callbacks e avisos nativos são listas separadas; nenhum campo ausente é inventado. Oito testes com PowerShell/Linux e ADB simulado aprovados, incluindo recuperação com idade correta, limites de janela, variações e privacidade. Execução real 1.2.0 ainda pendente. O APK permanece idêntico.
 
 Iniciar-coleta.cmd continua disponível para uma nova janela de 90 s caso não haja histórico útil. A investigação ainda não sustenta culpar exclusivamente o celular ou o console.
+
+## Coletor 1.3.0 — histórico nativo do serviço
+
+O JSON 1.2.0 recebido continha 41 linhas, três marcadores de vínculo e nenhum código de falha. O usuário informou comportamento semelhante num Galaxy, sem modelo/Android/log detalhados; isso reduz a hipótese exclusiva do Xiaomi, mas não comprova culpa do console, pois o app também é comum aos testes. PS4/PS5 no Xiaomi testa o celular como host; o teste de um desses controles diretamente no Switch foi solicitado e ainda não foi informado.
+
+Abra **Ler-servico-Bluetooth.cmd** da pasta extraída do coletor 1.3.0, com USB autorizado e Bluetooth do celular ligado. Não precisa iniciar outro pareamento. Envie o JSON gerado.
+
+Esse modo consulta dumpsys bluetooth_manager em memória e filtra somente o histórico nativo shim::btm, onde o código Android registra status/estado/motivo dos vínculos independentemente do logcat. Exporta só valores conhecidos, idade relativa e operações fixas. Não salva ou envia o dump completo, PINs, passkeys, endereços, nomes, chaves ou datas. Não compartilhe um dumpsys bruto. Janela de uma hora; dados podem incluir outros pares e não são automaticamente atribuídos ao Switch. O fabricante pode omitir a seção; ausência ou código zero não inventam uma causa.
+
+Dez testes com PowerShell/Linux e ADB simulado aprovados; limite de registros futuros subsegundo conferido após ajuste. Leitura dessa fonte no Windows/Xiaomi ainda pendente. Não houve alteração ou rebuild do APK. O teste com PS4/PS5 no Switch continua sendo a comparação prática para verificar aceitação de um controle compatível pelo MissionControl.
