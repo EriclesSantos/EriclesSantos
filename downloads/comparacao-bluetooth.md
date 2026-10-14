@@ -79,3 +79,11 @@ Xiaomi 2511FPC34G, Android 16/API 36, destino Switch e layout Nintendo. Nenhuma 
 Os experimentos não resolveram o pareamento. Continuam possíveis problemas de autenticação, serviço SDP/HID anunciado ou abertura do enlace, sem código nativo para escolher a causa. BONDED local não garante vínculo utilizável pelos dois lados; callback CONNECTING não confirma canal aberto. Não há evidência de erro de L+R ou formato dos relatórios como causa dessas falhas, pois nenhum relatório foi trocado.
 
 O motivo 0 continua desconhecido. O texto genérico do app para conferir patches não é nova evidência contra MissionControl: módulo e arquivos já foram conferidos. Não se pede repetir estes testes, novos coletores, root ou atualização do console. APK 0.2.6 permanece idêntico; atualização apenas da documentação com a validação física recebida.
+
+## Relato posterior: destino PC no Switch e comparação 0.2.7
+
+Usuário informou que o console não encontrava o telefone no destino PC, permanecendo na procura. Não foi recebido diagnóstico dessa tentativa; isso não demonstra a etapa interna de falha. A sugestão de comparar PC com Switch era limitada: PC restaura o nome original do rádio e também muda descritor/relatórios. Logo não isola rejeição do descritor genérico.
+
+Foi adicionado Teste 4 na 0.2.7: destino Switch conserva nome de rádio Pro Controller e os mesmos textos/subclasse solicitados SDP; usa DiagnosticDescriptor e relatórios ID 1 do caminho PC. É uma comparação dos perfis mantendo a identificação nominal, sem mudar política de autenticação/classe de rádio. Não se presume que o nome causou a falha anterior. Cache no console e estado dos vínculos ainda podem afetar o resultado.
+
+O teste é passivo, sem combinar as alternativas 1–3. Conexão fica verde só após canal real; negociação Nintendo é não aplicável e Confirmar L+R fica inativo. Um canal genérico eventualmente aberto não prova controles mapeados no MissionControl. Teste físico dessa nova variante ainda pendente.
