@@ -86,4 +86,19 @@ Usuário informou que o console não encontrava o telefone no destino PC, perman
 
 Foi adicionado Teste 4 na 0.2.7: destino Switch conserva nome de rádio Pro Controller e os mesmos textos/subclasse solicitados SDP; usa DiagnosticDescriptor e relatórios ID 1 do caminho PC. É uma comparação dos perfis mantendo a identificação nominal, sem mudar política de autenticação/classe de rádio. Não se presume que o nome causou a falha anterior. Cache no console e estado dos vínculos ainda podem afetar o resultado.
 
-O teste é passivo, sem combinar as alternativas 1–3. Conexão fica verde só após canal real; negociação Nintendo é não aplicável e Confirmar L+R fica inativo. Um canal genérico eventualmente aberto não prova controles mapeados no MissionControl. Teste físico dessa nova variante ainda pendente.
+O teste é passivo, sem combinar as alternativas 1–3. Conexão fica verde só após canal real; negociação Nintendo é não aplicável e Confirmar L+R fica inativo. Um canal genérico eventualmente aberto não prova controles mapeados no MissionControl. O teste físico posterior falhou com vínculo salvo e sem vínculo salvo no Android; detalhes abaixo.
+
+## Resultado físico 0.2.7: perfil genérico com vínculo removido no celular
+
+Xiaomi 2511FPC34G/Android 16/API 36, destino Switch, Teste 4. O usuário enviou duas tentativas:
+
+| Tentativa | Eventos observados | Limite da conclusão |
+| --- | --- | --- |
+| Vínculo salvo | Nome confirmado, HID registrado aos 3 s, host previamente associado pelo perfil=true, vínculo salvo encontrado=true, sem BONDED novo; BONDED→NONE aos 17 s. Sem callback de conexão HID. | Perfil genérico não abriu canal com essa associação anterior. Isoladamente não representava pareamento novo. |
+| Após remover o vínculo no celular | Nome confirmado aos 0 s; HID registrado aos 1 s; host previamente associado pelo perfil=false; vínculo salvo encontrado=false; BONDING aos 14 s e NONE aos 20 s, sem BONDED. Sem callback HID (-1), pedidos do host ou envios. Motivo Android 0. | A troca para descritor/relatórios genéricos também não resolveu essa tentativa sem vínculo salvo no Android. Reutilização de associação no telefone não explica sozinha esse caso. |
+
+O app estava em READY até receber a falha; o registro/nome foram limpos depois. Portanto HID=false e nome Pro Controller=false no relatório final são consequências do encerramento. O log confirma registro do perfil e início do vínculo, mas não confirma autenticação completada, leitura SDP pelo console ou canal HID.
+
+Nome Pro Controller, campos SDP solicitados e políticas do Android são comuns aos perfis comparados. A falha com o descritor genérico não exclui problemas nessas partes compartilhadas; também não permite afirmar que o descritor Nintendo estava correto. Nenhum comando de botões foi trocado. Motivo 0 continua sem descrição conhecida, sem autor/motivo nativo da interrupção.
+
+Resultado: as alternativas de retenção após perda, conexão de saída após vínculo estável e troca para perfil genérico não demonstraram compatibilidade com esse Switch. Não há correção definitiva comprovada no APK. Não se atribui defeito exclusivamente ao telefone, ao console ou ao MissionControl, nem se recomenda repetir os mesmos testes, novos coletores, root ou atualização do console com base nesses dados. O próximo avanço técnico exige evidência nova de uma diferença concreta de identidade/serviço/segurança ou da causa nativa; simplesmente alterar tempos, botões ou emitir outro APK não é uma correção fundamentada.

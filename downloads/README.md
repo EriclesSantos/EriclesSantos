@@ -2,7 +2,13 @@
 
 [Baixar APK Android 0.2.7](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.7-experimental.apk) · [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt)
 
-## Novo teste: HID genérico com nome Pro Controller
+## Resultado atual
+
+O Teste 4 da 0.2.7 foi executado pelo usuário com vínculo salvo e após removê-lo no celular: nenhum canal HID abriu. Na tentativa sem vínculo salvo, o app registrou HID aos 1 s, Android iniciou BONDING aos 14 s e retornou NONE aos 20 s, sem BONDED ou callback HID. Motivo 0 continua desconhecido. Os testes 1–3 da 0.2.6 também falharam. **A compatibilidade com esse Switch ainda não foi resolvida.** Não é necessário repetir esses testes ou baixar outro coletor.
+
+O APK permanece idêntico. Windows continua funcional no escopo relatado; o resultado não identifica defeito exclusivamente no telefone ou no console. A comparação abaixo registra as evidências e seus limites.
+
+## Histórico do Teste 4: HID genérico com nome Pro Controller
 
 O destino PC não iniciava pareamento visível com o Switch no relato do usuário. Esse modo também restaura o nome Bluetooth original do telefone, além de trocar o perfil de relatórios, portanto não isolava a causa.
 
@@ -18,7 +24,7 @@ A 0.2.7 adiciona **Teste 4 • HID genérico**: mantém nome de rádio Pro Contr
 
 ## Validação e resultados anteriores
 
-Build/lint, 2.574 asserções JVM, assinatura e alinhamento aprovados. APK não depurável, versionCode 9, 123639 bytes. Nova variante ainda sem teste físico no telefone/Switch; nenhuma correção definitiva demonstrada.
+Build/lint, 2.574 asserções JVM, assinatura e alinhamento aprovados. APK não depurável, versionCode 9, 123639 bytes. Teste físico no Xiaomi/Android 16 e Switch recebido: falhou antes de concluir vínculo/HID, inclusive após remover a associação no celular; nenhuma correção definitiva demonstrada.
 
 - Windows: usuário confirmou reconhecimento e entradas do HID genérico com Xiaomi/Android 16. O perfil Nintendo também abriu HID no Windows, sem negociação Nintendo.
 - Switch: Testes 1–3 da 0.2.6 não abriram HID. Teste 1 confirmou vínculo duas vezes, seguido de queda com registro mantido. Teste 2 recebeu CONNECTING→DISCONNECTED após abertura pelo celular. No Teste 3, o vínculo caiu antes do intervalo estável e a abertura não foi executada. Não é necessário repetir esses três testes para a comparação atual.
