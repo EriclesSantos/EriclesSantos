@@ -22,7 +22,7 @@ O diagnóstico identifica o teste, a janela utilizada e a abertura solicitada. A
 
 ## Validação e limites
 
-Build/lint, 2.544 asserções JVM, assinatura e alinhamento aprovados. APK não depurável, versionCode 8, 123639 bytes. Testes automatizados cobrem os rastros físicos recebidos e os limites das novas políticas. A interface e o rádio dessa versão ainda precisam do teste físico; não há correção definitiva do Switch demonstrada.
+Build/lint, 2.544 asserções JVM, assinatura e alinhamento aprovados. APK não depurável, versionCode 8, 123639 bytes. Testes automatizados cobrem os rastros físicos recebidos e os limites das novas políticas. O usuário executou os três testes da 0.2.6 no Xiaomi/Android 16: nenhum abriu HID. No Teste 1, o vínculo foi confirmado duas vezes e caiu mesmo com o registro mantido. No Teste 2, a abertura pelo celular chegou a CONNECTING e terminou DISCONNECTED. No Teste 3, o vínculo caiu antes do intervalo estável, sem executar a abertura. Os experimentos não corrigiram o pareamento; causa exata ainda desconhecida. A comparação registra tempos e limites da conclusão.
 
 - Windows: usuário confirmou reconhecimento e resposta às entradas do HID genérico com Xiaomi/Android 16. O destino Nintendo também abriu HID no Windows, sem negociação Nintendo.
 - Switch: logs anteriores mostram perda de vínculo antes do HID. Galaxy apresentou comportamento semelhante por relato. Os dados não identificaram a causa exata.

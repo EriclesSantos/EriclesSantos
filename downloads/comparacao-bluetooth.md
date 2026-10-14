@@ -65,3 +65,17 @@ Fonte exata: [README MissionControl 0.14.2, Other Controllers](https://github.co
 ## Atualização posterior: testes opcionais 0.2.6
 
 A pedido do usuário, o app passou a permitir manter o registro HID por até 12 s após a primeira perda do vínculo e solicitar uma única abertura de canal após 5 s de vínculo estável. São opções separadas e combináveis no Início → Escolher teste de conexão, sem mudar autenticação ou identidade do rádio. O modo Padrão continua passivo. Isso testa duas decisões do aplicativo antes de concluir que dependem exclusivamente do stack/console. Nenhuma hipótese foi convertida em causa comprovada. Veja as instruções do APK no README.
+
+## Resultado físico recebido: três testes da 0.2.6
+
+Xiaomi 2511FPC34G, Android 16/API 36, destino Switch e layout Nintendo. Nenhuma das três tentativas abriu o canal HID: zero GET/SET/Interrupt e envios; modo Nintendo nunca negociado. Estado atual HID=false no relatório final resulta da limpeza após erro, não demonstra desregistro antes da falha.
+
+| Teste | Eventos observados | O que permite concluir |
+| --- | --- | --- |
+| 1: retenção do registro | Registro aos 4 s; BONDING 15 s; BONDED 22 s; NONE 24 s. O app reteve HID/nome; BONDING 25 s; BONDED 27 s; NONE 29 s. Sem callback de conexão HID. | Houve confirmação real do vínculo, duas vezes. A retenção permitiu observar nova tentativa, mas a queda repetiu enquanto o registro estava mantido. Encerrar o perfil na primeira perda não é explicação suficiente desta ocorrência. |
+| 2: abertura após 5 s | Vínculo salvo observado e registro em 1 s; connect solicitado aos 6 s; callback CONNECTING/1 aos 6 s e DISCONNECTED/0 aos 7 s. Sem CONNECTED/2. Nenhuma perda de vínculo observada antes do encerramento. | O caminho de saída foi executado e falhou antes do canal ficar disponível. Simples ausência de connect não explica esse caso; não se prova rejeição pelo console, pois o callback não fornece autor/motivo. |
+| 3: combinado | Vínculo salvo em 1 s; NONE e novo BONDING em 4 s; NONE em 9 s; nenhum BONDED novo. | Nunca atingiu 5 s de vínculo estável; a parte de abertura HID não foi executada. Não equivale a testar as duas ações completadas em sequência. |
+
+Os experimentos não resolveram o pareamento. Continuam possíveis problemas de autenticação, serviço SDP/HID anunciado ou abertura do enlace, sem código nativo para escolher a causa. BONDED local não garante vínculo utilizável pelos dois lados; callback CONNECTING não confirma canal aberto. Não há evidência de erro de L+R ou formato dos relatórios como causa dessas falhas, pois nenhum relatório foi trocado.
+
+O motivo 0 continua desconhecido. O texto genérico do app para conferir patches não é nova evidência contra MissionControl: módulo e arquivos já foram conferidos. Não se pede repetir estes testes, novos coletores, root ou atualização do console. APK 0.2.6 permanece idêntico; atualização apenas da documentação com a validação física recebida.
