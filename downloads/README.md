@@ -10,7 +10,7 @@
 - Switch: ainda sem sucesso demonstrado. O vínculo cai antes de abrir HID; motivos recebidos não identificaram a causa. Galaxy teve comportamento semelhante segundo relato, sem modelo/Android/log específicos.
 - MissionControl v0.14.2: módulo e 59 patches enviados idênticos aos oficiais; processo On relatado após reinício. Um controle PS4/PS5 conectou e funcionou no console.
 
-O app usa emulação parcial Nintendo; MissionControl usa drivers dedicados para Sony. A API Android empregada não permite definir VID/PID Sony/Nintendo. Trocar nome/layout não reproduz um controle Sony. A comparação completa distingue esses fatos das hipóteses sobre a perda do vínculo. Nenhum novo APK foi publicado nesta análise e não há correção física definitiva comprovada para Switch.
+O app usa emulação parcial Nintendo. MissionControl suporta Sony e vários controles genéricos; até controles ainda sem mapeamento podem parear. Portanto IDs Sony/driver dedicado não são requisitos universais de pareamento. A API Android empregada não permite definir VID/PID Sony/Nintendo. Trocar nome/layout não reproduz um controle Sony. A comparação completa distingue esses fatos das hipóteses sobre a perda do vínculo. Nenhum novo APK foi publicado nesta análise e não há correção física definitiva comprovada para Switch.
 
 ## APK 0.2.5
 
@@ -19,3 +19,5 @@ Mantém a assinatura da 0.2.1–0.2.4 e instala como atualização. Pontos verde
 Android 9+, sem root/Internet/telemetria no APK. PC é HID genérico, não XInput. Sem IMU/NFC/rumble do jogo/pareamento manual com chaves. Assinatura própria não garante retirada de aviso do Play Protect.
 
 [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt). APKs e ferramentas anteriores permanecem como histórico, sem solicitação de nova coleta.
+
+Esclarecimento: os controles paralelos relatados pelo usuário reforçam que falta de driver Sony não explica esta falha pré-HID. A comparação foi corrigida; autenticação, anúncio de serviço e verificações de classe continuam candidatos sem causa comprovada. Nenhuma nova coleta foi solicitada.

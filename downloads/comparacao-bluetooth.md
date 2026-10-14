@@ -4,7 +4,7 @@ Análise em 14/10/2026 usando código e evidências já disponíveis. Novas cole
 
 ## Conclusão
 
-A diferença principal não é Bluetooth antigo/novo nem layout: PS4/PS5 usam protocolos Sony e drivers próprios no MissionControl; o app se anuncia como Pro Controller e tenta emular Nintendo diretamente. A falha registrada acontece antes de abrir HID, portanto não há evidência de que trocar CRC, botões, L+R ou comandos de jogo resolva o pareamento.
+Há diferenças de protocolo: PS4/PS5 usam drivers Sony no MissionControl; o app tenta emular Nintendo. Porém driver ou VID/PID Sony não são requisitos universais para parear: MissionControl também admite vários controles genéricos, inclusive ainda sem mapeamento. Essas diferenças não identificam a causa desta perda de vínculo. A falha registrada acontece antes de abrir HID, portanto não há evidência de que trocar CRC, botões, L+R ou comandos de jogo resolva o pareamento.
 
 O console aceitou ao menos um dos controles PS4/PS5; o app funcionou com Windows; um Galaxy apresentou comportamento semelhante ao Xiaomi segundo o usuário, ainda sem modelo/Android/log. Isso concentra a investigação na interoperabilidade app/Android→Switch, sem provar qual verificação de identidade, SDP, autenticação ou abertura de enlace falhou.
 
@@ -40,7 +40,7 @@ Os JSONs não revelaram HCI reason: 1.1.0 recebeu 21 linhas não convertidas; 1.
 
 A camada a corrigir é a interoperabilidade antes do canal HID, envolvendo a identidade/serviço anunciado pelo Android e a aceitação pelo Switch. O protocolo parcial Nintendo também precisará de validação depois, mas não foi alcançado nos relatos atuais. Não foi encontrada uma mudança comprovadamente corretiva no código do APK que justifique anunciar outra versão como solução definitiva.
 
-Uma integração dedicada no MissionControl para o HID genérico do SwitchPhone é uma alternativa de engenharia: o app já tem relatório genérico próprio e funcional no Windows; um driver correspondente poderia reconhecer esse serviço e traduzir seus campos para Switch. Isso exige desenvolvimento/coerência de identificação e validação no console. Não está implementado nem garante resolver uma eventual incompatibilidade de autenticação anterior. Também não exige fingir identidade Sony. Outra arquitetura possível seria uma ponte de rede/homebrew, mas ela muda o transporte solicitado e não foi adotada silenciosamente.
+Uma integração dedicada no MissionControl só é uma alternativa para a etapa posterior de tradução de entradas, se necessária; não está demonstrada como solução da perda pré-HID: o app já tem relatório genérico próprio e funcional no Windows; um driver correspondente poderia reconhecer esse serviço e traduzir seus campos para Switch. Isso exige desenvolvimento/coerência de identificação e validação no console. Não está implementado nem garante resolver uma eventual incompatibilidade de autenticação anterior. Também não exige fingir identidade Sony. Outra arquitetura possível seria uma ponte de rede/homebrew, mas ela muda o transporte solicitado e não foi adotada silenciosamente.
 
 Estado honesto da entrega: PC funcional no escopo relatado; Switch experimental ainda sem conexão demonstrada. Não se recomenda atualizar/apagar configurações do console ou fazer root com base nesses dados. Não foram criados novos coletores nem outro APK nesta comparação.
 
@@ -51,3 +51,13 @@ Estado honesto da entrega: PC funcional no escopo relatado; Switch experimental 
 - [IDs DualShock 4](https://github.com/ndeadly/MissionControl/blob/e8d4623c/mc_mitm/source/controllers/dualshock4_controller.hpp) e [DualSense](https://github.com/ndeadly/MissionControl/blob/e8d4623c/mc_mitm/source/controllers/dualsense_controller.hpp). Implementações Sony atuais também consultadas para relatórios/inicialização, sem copiar código GPL para o app.
 - [API Android 16 SDP, árvore mantida pelo GrapheneOS](https://github.com/GrapheneOS/platform_packages_modules_Bluetooth/blob/16/framework/java/android/bluetooth/BluetoothHidDeviceAppSdpSettings.java) e implementação nativa bta_hd_act.cc da mesma árvore. São referência, não decompilação do firmware Xiaomi.
 - Código próprio: HidSession, IdentityLease, NintendoDescriptor/Protocol e ControllerState. Análise estática e comparação dos logs recebidos; nenhuma nova validação de rádio foi simulada como sucesso.
+
+## Esclarecimento após o teste com controles paralelos
+
+Usuário confirmou uso de vários controles paralelos, inclusive AliExpress, no Switch. Isso é consistente com o README oficial 0.14.2: seção Other Controllers recomenda modos HID/PC/Android; controles ainda não suportados podem parear e aparecer com botões vermelhos por falta de mapeamento. O código cria UnknownController no caso não identificado; a seleção ocorre depois de HID Opened. Logo não é correto tratar VID/PID Sony ou driver dedicado como requisito para passar pelo pareamento.
+
+A recomendação anterior de um driver próprio foi prematura como correção deste bloqueio. Sem HID aberto, adicionar tradução de botões não resolve por si só a etapa anterior. A versão do app ainda pode ter problemas de emulação posteriores, mas não foram atingidos nos logs.
+
+O bloqueio observado fica no estabelecimento do vínculo/enlace HID. Candidatos são autenticação/segurança, anúncio SDP/HID e verificações de classe/aceitação específicas ao aparelho. O nome Pro Controller não comprova equivalência nesses campos. Não há código HCI nos dados enviados que permita escolher entre esses candidatos; não se declara causa Android 16, classe de telefone ou falta de patch como comprovada. Arquivos de patches conferidos não comprovam aplicação em memória; um controle funcionando não exercita necessariamente todas as verificações exigidas por outro.
+
+Fonte exata: [README MissionControl 0.14.2, Other Controllers](https://github.com/ndeadly/MissionControl/blob/e8d4623c/README.md#other-controllers), parágrafo que começa Controllers that successfully pair but haven't been officially supported yet; e default UnknownController em controller_management.cpp da mesma release. Revisão documental somente, sem novo APK, coletor ou pedido de teste.
