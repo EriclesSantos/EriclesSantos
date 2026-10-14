@@ -1,3 +1,4 @@
 d1aa6f0c266b9b021365dbf308b981a4e37416c1694cbfc1327b102d6fb4fd36  switchphone-0.2.0-experimental.apk
 d53e9b3870c328eadd4bf42039568d369bce39a7d2eb014ee6035f6ee58a001d  switchphone-0.2.1-experimental.apk
-86fedfd6500092a4c6b1f475a0ca9fec70300bd44064fa7bd5d60d755b179230  switchphone-controller-source.zip
+1b0b0e57054d0a8a316dfddbec6e2403cd187d5fd1c164ad440065be89add0bd  switchphone-0.2.2-experimental.apk
+13ae6a36d51e65ba83e04ac1ff73e526bba48986a40c2836da76057c9ec7eb33  switchphone-controller-source.zip
