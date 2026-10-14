@@ -1,44 +1,35 @@
 # SwitchPhone Controller — download experimental
 
-[Baixar APK Android 0.2.4 — release](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.4-experimental.apk)
+[Baixar APK Android 0.2.5](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.5-experimental.apk)
 
-[Baixar código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt) · [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt)
+[Baixar coletor USB para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
 
-A 0.2.4 mantém a assinatura da 0.2.1/0.2.2/0.2.3: instale como atualização. A antiga 0.2.0 debug exige desinstalar por diferença de assinatura. Aplicativo experimental fora da Play Store; assinatura própria não garante retirada de aviso do Play Protect.
+[Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt) · [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt)
 
-## O que mudou
+A 0.2.5 instala como atualização da 0.2.1–0.2.4, com a mesma chave estável. A antiga 0.2.0 debug tem assinatura diferente. Aplicativo experimental fora da Play Store; assinatura própria não garante retirada do aviso Play Protect.
 
-- Corrigida a identificação do vínculo: um Nintendo Switch já salvo no celular não é mais apresentado como callback BONDED recebido nesta tentativa.
-- Diagnóstico inclui o motivo de remoção disponibilizado pelo Android, quando presente. Ausência/códigos desconhecidos são explícitos; o código 9 é também genérico e não prova quem removeu o vínculo.
-- No Android 16+, pode observar o sinal KEY_MISSING do sistema para ajudar a identificar falhas de chave. Não lê chaves, não chama APIs ocultas, não usa root ou novas permissões. Ausência desse sinal não descarta falha de autenticação.
-- Mantém a política da 0.2.3: nenhuma conexão de saída automática após vínculo; uma tentativa manual com vínculo estável há 5 s; perda do vínculo encerra; L+R exige canal HID real; teste de toque local permanece isolado.
+## Correção dos indicadores
 
-Esta versão melhora o diagnóstico. Ainda não há correção física comprovada para a conexão Xiaomi/Android 16 com Switch Lite.
+Os três pontos ficam verdes fixos quando o canal HID conecta, inclusive enquanto a negociação Nintendo está pendente. Nesse caso a mensagem continua amarela e explícita; o diagnóstico mostra Modo Nintendo negociado separadamente. Sem canal os controles continuam cinzas. Não foi alterado o protocolo, as permissões ou o timeout de negociação de 45 s. Verde confirma transporte HID, sem comprovar entradas em jogo.
 
-## Validação física: Windows
+O teste 0.2.4 no Xiaomi 2511FPC34G/Android 16 com Windows confirmou SwitchPhone Gamepad no joy.cpl e resposta às entradas no destino PC. No mesmo Windows, o destino Nintendo conectou como Pro Controller: callback HID CONNECTED aos 49 s, sete envios aceitos pelo Android e L+R aos 57 s; zero GET/SET/Interrupt e fase NEGOTIATING. A UI antiga ficava vermelha apesar desse canal real.
 
-Em 2026-10-14, o usuário confirmou que SwitchPhone 0.2.4 no Xiaomi 2511FPC34G/Android 16/API 36 respondeu às entradas no Windows. A captura mostra SwitchPhone Gamepad com status OK em joy.cpl e a página de teste de eixos/botões. A versão/build do Windows não foi informada; jogos, todos os comandos individualmente, latência e operação prolongada não foram inventariados.
+O pareamento com Switch Lite continua sem solução física comprovada. HOS 21.1.0|AMS 1.10.1|E/CNX: teste limpo falhou antes do canal HID, BONDING aos 38 s e NONE aos 46 s, motivo Android 0. O módulo enviado e os 59 patches Bluetooth/BTM são idênticos ao MissionControl v0.14.2 oficial. Usuário confirmou MissionControl On no Hekate Toolbox após reiniciar, antes de alterar botões. Aplicação dos patches em memória não foi inspecionada. Não é necessário repetir o envio desses arquivos.
 
-O APK permanece o mesmo, com o mesmo SHA-256. Esta atualização registra o resultado e prepara a identificação do módulo MissionControl instalado.
+## Coleta do erro do Switch
 
-## Próxima conferência no Switch
+O cabo está conectado ao PC do usuário; o ambiente na nuvem não acessa essa porta USB. O coletor tenta obter status/hciReason do processo Bluetooth, que o broadcast do app não fornece.
 
-O teste limpo já foi realizado: nenhum vínculo salvo ao registrar HID; tentativa nova aos 38 s; falha aos 46 s; sem canal HID ou comandos do host, motivo Android 0 sem causa detalhada. A ordem com registro HID antes de abrir Mudar ordem/modo de segurar também foi testada e não resolveu a ocorrência.
+1. No Xiaomi, ative Opções do desenvolvedor (sete toques em Versão do SO/HyperOS, em Sobre o telefone), depois Configurações adicionais → Opções do desenvolvedor → Depuração USB.
+2. No Windows, baixe o ZIP do coletor, use Extrair tudo e abra Iniciar-coleta.cmd. Não precisa de administrador. Na primeira execução baixa 8 MB de ferramentas oficiais Google, verificadas por SHA-256.
+3. Aceite Permitir depuração USB no celular desbloqueado. Deixe o Bluetooth do PC desligado durante a coleta, para ele não reconectar como Pro Controller. Mantenha o do celular ligado.
+4. Pressione Enter na janela do coletor. Quando mostrar COLETA INICIADA, no app escolha Switch experimental → Parear e aguarde HID registrado; só então abra Controles → Mudar ordem/modo de segurar no Switch. Aceite Associer sem contatos.
+5. Ao terminar (até 90 s), envie o arquivo switchphone-bluetooth-....json gerado e Diagnóstico → Copiar do app. Se o coletor exibir erro, envie essa mensagem. Depois pode desativar Depuração USB e reativar Bluetooth do PC.
 
-O exefs.nsp enviado pelo usuário foi identificado: corresponde byte a byte ao MissionControl v0.14.2 oficial, com 166310 bytes e SHA-256 4a21c9d7333d6f7944f88c2067d49c7fb5a7506e0f83fe5898c7d9abb9ce48fa. O ZIP de patches recebido também foi conferido: os 30 arquivos bluetooth_patches e 29 btm_patches correspondem byte a byte ao mesmo pacote oficial, sem ausências ou diferenças no conjunto enviado. Isso confirma o conteúdo dos arquivos; execução do módulo e aplicação dos patches em memória ainda não foram verificadas. O código-fonte inclui a referência e o identificador SHA-256.
+O LEIA-ME.txt do ZIP inclui os detalhes e passos para vínculo limpo. O JSON contém só tempo relativo e códigos numéricos, sem MAC, serial, chaves ou log completo. Não é enviado automaticamente à Internet. Sem callback, o relatório informa ausência de eventos; isso não identifica a causa. Não é preciso compartilhar bugreport ou HCI completo.
 
-## MissionControl/CNX
+## Validação e limites
 
-O usuário informou HOS 21.1.0|AMS 1.10.1|E e CNX. Arquivos do módulo, boot2 e pastas bluetooth_patches/btm_patches foram relatados presentes no SD. O módulo foi posteriormente identificado como v0.14.2 oficial por comparação do arquivo enviado. Conteúdo de módulo e patches confirmado; execução do módulo e aplicação em memória ainda precisam de conferência.
+Build/lint aprovados (0 erros, 1 aviso conhecido de paisagem fixa), assinatura/alinhamento e 2.486 asserções JVM. Cinco testes do coletor com PowerShell 7.6.7/Linux e ADB simulado aprovados; download/hash/extração oficiais e rejeição de cache alterado também verificados. Windows PowerShell 5.1 real, USB e instalação da 0.2.5 no Xiaomi ainda dependem do usuário.
 
-Confira atmosphere/exefs_patches/bluetooth_patches e btm_patches com arquivos .ips. O pacote MissionControl também distribui hid_patches. As notas CNX incluem MissionControl e registram ativação por Ultrahand/Hekate Toolbox; o suporte oficial ao HOS 21.1.0 entrou no [MissionControl 0.14.1](https://github.com/ndeadly/MissionControl/releases/tag/v0.14.1). Não copie patches experimentais de firmware diferente.
-
-## Evidência e limites
-
-A tentativa 0.2.3 começou com vínculo já salvo: HID registrado em 1 s; vínculo removido em 7 s; nenhum callback de conexão HID, pedido GET/SET/Interrupt ou envio. Não houve chamada connect do app. Isso não identifica o iniciador/motivo da remoção nem confirma funcionamento em jogo. O teste limpo 0.2.4 também falhou antes do canal HID, conforme seção acima. O sucesso genérico no PC não identifica a causa da falha Nintendo.
-
-Build/lint (0 erros, aviso conhecido de paisagem fixa), assinatura/alinhamento e 2.486 asserções JVM aprovados. Emulação Pro Controller parcial: sem giroscópio, NFC, rumble do jogo ou pareamento manual com chaves. PC usa HID genérico, não XInput; houve confirmação manual de reconhecimento e resposta no joy.cpl.
-
-Android 9+, sem root, Internet, localização, varredura, contatos ou chamadas no manifesto. Sem telemetria. Versões anteriores permanecem como histórico.
-
-Próxima observação: após reiniciar no Atmosphère, abrir Hekate Toolbox → Background services e conferir MissionControl antes de alterar botões. A abertura da tela consulta o processo em execução; boot2 é apenas o indicador de início automático. O pareamento Switch segue sem solução física comprovada.
+Android 9+, sem root, Internet, localização, varredura, contatos ou chamadas no APK. Sem telemetria. PC é HID genérico, não XInput. Emulação Pro Controller parcial, sem giroscópio, NFC, rumble do jogo ou pareamento manual por chaves. Jogos, latência, estabilidade e inventário completo de controles ainda não validados. Versões anteriores ficam como histórico.
