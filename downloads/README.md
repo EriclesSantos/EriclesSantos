@@ -61,3 +61,7 @@ Abra **Ler-servico-Bluetooth.cmd** da pasta extraída do coletor 1.3.0, com USB 
 Esse modo consulta dumpsys bluetooth_manager em memória e filtra somente o histórico nativo shim::btm, onde o código Android registra status/estado/motivo dos vínculos independentemente do logcat. Exporta só valores conhecidos, idade relativa e operações fixas. Não salva ou envia o dump completo, PINs, passkeys, endereços, nomes, chaves ou datas. Não compartilhe um dumpsys bruto. Janela de uma hora; dados podem incluir outros pares e não são automaticamente atribuídos ao Switch. O fabricante pode omitir a seção; ausência ou código zero não inventam uma causa.
 
 Dez testes com PowerShell/Linux e ADB simulado aprovados; limite de registros futuros subsegundo conferido após ajuste. Leitura dessa fonte no Windows/Xiaomi ainda pendente. Não houve alteração ou rebuild do APK. O teste com PS4/PS5 no Switch continua sendo a comparação prática para verificar aceitação de um controle compatível pelo MissionControl.
+
+### Resultado da comparação com controle compatível
+
+Usuário confirmou que ao menos um controle PS4/PS5 conectou e funcionou no Switch via MissionControl. Assim, há confirmação básica console/MC com controle compatível. App funciona no Windows e falha no Switch em Xiaomi e, conforme relato sem log detalhado, Galaxy. O foco fica na interoperabilidade app/Android→Switch; esse conjunto não permite atribuir a causa a um defeito geral do console nem comprova uma linha específica do app como responsável. Modelo/Android do Galaxy ainda pendentes.
