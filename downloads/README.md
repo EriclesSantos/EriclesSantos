@@ -2,7 +2,7 @@
 
 [Baixar APK Android 0.2.5](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.5-experimental.apk)
 
-[Baixar coletor USB para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
+[Baixar coletor USB 1.1.0 para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows-1.1.0.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
 
 [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt) · [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt)
 
@@ -33,3 +33,11 @@ O LEIA-ME.txt do ZIP inclui os detalhes e passos para vínculo limpo. O JSON con
 Build/lint aprovados (0 erros, 1 aviso conhecido de paisagem fixa), assinatura/alinhamento e 2.486 asserções JVM. Cinco testes do coletor com PowerShell 7.6.7/Linux e ADB simulado aprovados; download/hash/extração oficiais e rejeição de cache alterado também verificados. Usuário confirmou que o coletor executou no Windows até a checagem USB, ainda sem aparelho ADB autorizado/encontrado. Versão exata do PowerShell, eventos reais Bluetooth e instalação da 0.2.5 no Xiaomi ainda não confirmados.
 
 Android 9+, sem root, Internet, localização, varredura, contatos ou chamadas no APK. Sem telemetria. PC é HID genérico, não XInput. Emulação Pro Controller parcial, sem giroscópio, NFC, rumble do jogo ou pareamento manual por chaves. Jogos, latência, estabilidade e inventário completo de controles ainda não validados. Versões anteriores ficam como histórico.
+
+## Coletor 1.1.0 — correção de captura vazia
+
+JSON recebido do usuário: 90 segundos, no_events, events vazio. ADB/USB passou na checagem, mas nenhum motivo Bluetooth foi capturado. Usuário confirmou tentativa real e pedido Associer durante a janela. Foi encontrado um erro no filtro: o código Android 16 usa BluetoothBondStateMachine, enquanto a versão anterior selecionava apenas BondStateMachine. O novo coletor aceita ambos os nomes e continua limitado ao processo Bluetooth.
+
+Seis testes aprovados, incluindo regressão que falhou antes e passou após a correção. O JSON identifica collector_version=1.1.0 e inclui contagens de linhas recebidas/não reconhecidas, sem conteúdo bruto. Isso não corrige nem explica por si só o pareamento Switch. O APK 0.2.5 permanece idêntico.
+
+Baixe o coletor 1.1.0, extraia tudo e confira a versão na janela. Após COLETA INICIADA, tente efetivamente Parear no app e Mudar ordem/modo de segurar no Switch durante os 90 s. Envie o novo JSON e o diagnóstico do app da mesma tentativa. Executar somente o coletor não provoca pareamento.
