@@ -2,7 +2,7 @@
 
 [Baixar APK Android 0.2.5](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.5-experimental.apk)
 
-[Baixar coletor USB 1.1.0 para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows-1.1.0.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
+[Baixar coletor USB 1.2.0 para Windows](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-diagnostico-usb-windows-1.2.0.zip) · [Instruções da coleta](https://github.com/EriclesSantos/EriclesSantos/blob/main/downloads/README.md#coleta-do-erro-do-switch)
 
 [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt) · [Certificado](SIGNING-CERTIFICATE.sha256) · [Licença MIT](LICENSE.txt)
 
@@ -41,3 +41,13 @@ JSON recebido do usuário: 90 segundos, no_events, events vazio. ADB/USB passou 
 Seis testes aprovados, incluindo regressão que falhou antes e passou após a correção. O JSON identifica collector_version=1.1.0 e inclui contagens de linhas recebidas/não reconhecidas, sem conteúdo bruto. Isso não corrige nem explica por si só o pareamento Switch. O APK 0.2.5 permanece idêntico.
 
 Baixe o coletor 1.1.0, extraia tudo e confira a versão na janela. Após COLETA INICIADA, tente efetivamente Parear no app e Mudar ordem/modo de segurar no Switch durante os 90 s. Envie o novo JSON e o diagnóstico do app da mesma tentativa. Executar somente o coletor não provoca pareamento.
+
+## Coletor 1.2.0 — consultar o histórico recente
+
+Novo arquivo 1.1.0 recebido: 90 s, 21 linhas, todas não reconhecidas; nenhum código de falha. Diagnóstico da mesma tentativa no APK 0.2.4: vínculo salvo removido aos 7 s, sem canal HID, motivo Android 0. Isso não identifica se Android ou console causou a interrupção.
+
+Primeiro abra **Ler-ultima-tentativa.cmd**, na pasta extraída do novo coletor. Ele lê somente os últimos 15 minutos ainda conservados no processo Bluetooth; não inicia pareamento e não exige repetir agora. Envie o JSON gerado. Buffer rotacionado ou processo reiniciado pode impedir recuperar o episódio. Tempos negativos indicam segundos antes da leitura. Registros de outros pares dentro da janela não são automaticamente atribuídos ao Switch.
+
+A 1.2.0 aceita variações de prefixo/separador/caixa/decimal/hex em campos conhecidos, procura avisos nativos de falha HCI e exporta somente números e contagens de marcadores fixos. Não exporta linhas, MAC, chaves, serial ou nomes. Callbacks e avisos nativos são listas separadas; nenhum campo ausente é inventado. Oito testes com PowerShell/Linux e ADB simulado aprovados, incluindo recuperação com idade correta, limites de janela, variações e privacidade. Execução real 1.2.0 ainda pendente. O APK permanece idêntico.
+
+Iniciar-coleta.cmd continua disponível para uma nova janela de 90 s caso não haja histórico útil. A investigação ainda não sustenta culpar exclusivamente o celular ou o console.
