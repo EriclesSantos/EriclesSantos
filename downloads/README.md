@@ -20,8 +20,8 @@ O pareamento com Switch Lite continua sem solução física comprovada. HOS 21.1
 
 O cabo está conectado ao PC do usuário; o ambiente na nuvem não acessa essa porta USB. O coletor tenta obter status/hciReason do processo Bluetooth, que o broadcast do app não fornece.
 
-1. No Xiaomi, ative Opções do desenvolvedor (sete toques em Versão do SO/HyperOS, em Sobre o telefone), depois Configurações adicionais → Opções do desenvolvedor → Depuração USB.
-2. No Windows, baixe o ZIP do coletor, use Extrair tudo e abra Iniciar-coleta.cmd. Não precisa de administrador. Na primeira execução baixa 8 MB de ferramentas oficiais Google, verificadas por SHA-256.
+1. No Xiaomi, ative Opções do desenvolvedor (sete toques em Versão do SO/HyperOS, em Sobre o telefone), depois Configurações adicionais → Opções do desenvolvedor → Depuração USB. Transferência de arquivos/MTP confirma o cabo, mas não substitui Depuração USB; pode manter MTP selecionado. Não precisa de Instalar via USB.
+2. No Windows, baixe o ZIP do coletor, use Extrair tudo e abra Iniciar-coleta.cmd na pasta extraída. Se faltar o PS1 ao lado, o iniciador explica a extração antes de chamar PowerShell. Não precisa de administrador. Na primeira execução baixa 8 MB de ferramentas oficiais Google, verificadas por SHA-256.
 3. Aceite Permitir depuração USB no celular desbloqueado. Deixe o Bluetooth do PC desligado durante a coleta, para ele não reconectar como Pro Controller. Mantenha o do celular ligado.
 4. Pressione Enter na janela do coletor. Quando mostrar COLETA INICIADA, no app escolha Switch experimental → Parear e aguarde HID registrado; só então abra Controles → Mudar ordem/modo de segurar no Switch. Aceite Associer sem contatos.
 5. Ao terminar (até 90 s), envie o arquivo switchphone-bluetooth-....json gerado e Diagnóstico → Copiar do app. Se o coletor exibir erro, envie essa mensagem. Depois pode desativar Depuração USB e reativar Bluetooth do PC.
@@ -30,6 +30,6 @@ O LEIA-ME.txt do ZIP inclui os detalhes e passos para vínculo limpo. O JSON con
 
 ## Validação e limites
 
-Build/lint aprovados (0 erros, 1 aviso conhecido de paisagem fixa), assinatura/alinhamento e 2.486 asserções JVM. Cinco testes do coletor com PowerShell 7.6.7/Linux e ADB simulado aprovados; download/hash/extração oficiais e rejeição de cache alterado também verificados. Windows PowerShell 5.1 real, USB e instalação da 0.2.5 no Xiaomi ainda dependem do usuário.
+Build/lint aprovados (0 erros, 1 aviso conhecido de paisagem fixa), assinatura/alinhamento e 2.486 asserções JVM. Cinco testes do coletor com PowerShell 7.6.7/Linux e ADB simulado aprovados; download/hash/extração oficiais e rejeição de cache alterado também verificados. Usuário confirmou que o coletor executou no Windows até a checagem USB, ainda sem aparelho ADB autorizado/encontrado. Versão exata do PowerShell, eventos reais Bluetooth e instalação da 0.2.5 no Xiaomi ainda não confirmados.
 
 Android 9+, sem root, Internet, localização, varredura, contatos ou chamadas no APK. Sem telemetria. PC é HID genérico, não XInput. Emulação Pro Controller parcial, sem giroscópio, NFC, rumble do jogo ou pareamento manual por chaves. Jogos, latência, estabilidade e inventário completo de controles ainda não validados. Versões anteriores ficam como histórico.
