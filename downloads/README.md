@@ -25,11 +25,11 @@ O APK permanece o mesmo, com o mesmo SHA-256. Esta atualização registra o resu
 
 O teste limpo já foi realizado: nenhum vínculo salvo ao registrar HID; tentativa nova aos 38 s; falha aos 46 s; sem canal HID ou comandos do host, motivo Android 0 sem causa detalhada. A ordem com registro HID antes de abrir Mudar ordem/modo de segurar também foi testada e não resolveu a ocorrência.
 
-O próximo artefato útil é atmosphere/contents/010000000000bd00/exefs.nsp do SD, que aparece como exefs quando o Windows oculta extensões. Copie esse arquivo para o computador para conferir a versão. O código-fonte inclui docs/missioncontrol-identification.md, fingerprints dos módulos oficiais e scripts/identify-missioncontrol.py, que calcula SHA-256 sem executar ou modificar o módulo.
+O exefs.nsp enviado pelo usuário foi identificado: corresponde byte a byte ao MissionControl v0.14.2 oficial, com 166310 bytes e SHA-256 4a21c9d7333d6f7944f88c2067d49c7fb5a7506e0f83fe5898c7d9abb9ce48fa. O próximo artefato útil é uma cópia das pastas bluetooth_patches e btm_patches para comparar o conteúdo ao mesmo pacote oficial. Identificação do módulo não comprova sua execução nem o conteúdo dos patches no SD. O código-fonte inclui a referência e o identificador SHA-256.
 
 ## MissionControl/CNX
 
-O usuário informou HOS 21.1.0|AMS 1.10.1|E e CNX. Arquivos do módulo, boot2 e pastas bluetooth_patches/btm_patches foram relatados presentes no SD. Isso não confirma a versão exata, execução ou correspondência dos arquivos ao HOS.
+O usuário informou HOS 21.1.0|AMS 1.10.1|E e CNX. Arquivos do módulo, boot2 e pastas bluetooth_patches/btm_patches foram relatados presentes no SD. O módulo foi posteriormente identificado como v0.14.2 oficial por comparação do arquivo enviado. Execução e conteúdo dos patches ainda precisam de conferência.
 
 Confira atmosphere/exefs_patches/bluetooth_patches e btm_patches com arquivos .ips. O pacote MissionControl também distribui hid_patches. As notas CNX incluem MissionControl e registram ativação por Ultrahand/Hekate Toolbox; o suporte oficial ao HOS 21.1.0 entrou no [MissionControl 0.14.1](https://github.com/ndeadly/MissionControl/releases/tag/v0.14.1). Não copie patches experimentais de firmware diferente.
 
