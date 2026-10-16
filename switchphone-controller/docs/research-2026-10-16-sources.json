@@ -1,0 +1,67 @@
+{
+  "checked_on": "2026-10-16",
+  "missioncontrol": {
+    "installed_identified_version": "0.14.2",
+    "official_candidate_version": "0.16.0",
+    "release_url": "https://github.com/ndeadly/MissionControl/releases/tag/v0.16.0",
+    "release_date": "2026-10-02",
+    "asset_url": "https://github.com/ndeadly/MissionControl/releases/download/v0.16.0/MissionControl-0.16.0-master-71bbe2d4.zip",
+    "asset_bytes": 205210,
+    "asset_sha256": "35ebcb889e06eae3ad909721332791898cafdefd0785d039aad45b4c4702c7f3",
+    "fix_commit": "8796a58f679adbbafce81c7f8d010468a6c8bf94",
+    "hos_21_family_bluetooth_patch": "68C915388537833D1AC9F3920708A1A0FF73E35A.ips",
+    "old_patch_sha256": "92bad0a3439e692a1410374157dc61684f9b90306b7ffe5b8f462b2f5665487a",
+    "new_patch_sha256": "43c754b8c965cd6aeaa4df60d67f29b456484532fef0b3a57aa359a3bbb7e150",
+    "installed_on_user_console": false,
+    "actual_phone_class_observed": false
+  },
+  "browser_sources": [
+    {
+      "source": "chromium",
+      "sha": "6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027",
+      "path": "device/gamepad/raw_input_gamepad_device_win.cc",
+      "snapshot": "raw_input_gamepad_device_win.cc",
+      "same_as_branch_snapshot": true,
+      "sha256": "384c40b00be40ad7c38b52aa2b4b628452b1249b40e3468f94bcda29cc0a6f69",
+      "url": "https://github.com/chromium/chromium/blob/6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027/device/gamepad/raw_input_gamepad_device_win.cc"
+    },
+    {
+      "source": "chromium",
+      "sha": "6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027",
+      "path": "device/gamepad/raw_input_data_fetcher_win.cc",
+      "snapshot": "raw_input_data_fetcher_win.cc",
+      "same_as_branch_snapshot": true,
+      "sha256": "8464fc91eab4f695d1f63cb2b0b97cad0d0992ee5d8977991c759066efbd10a5",
+      "url": "https://github.com/chromium/chromium/blob/6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027/device/gamepad/raw_input_data_fetcher_win.cc"
+    },
+    {
+      "source": "chromium",
+      "sha": "6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027",
+      "path": "device/gamepad/gamepad_standard_mappings_win.cc",
+      "snapshot": "chromium-windows-mapping.cc",
+      "same_as_branch_snapshot": true,
+      "sha256": "1a20f3adb9599495d8b109ea6436705ee74dd1b1aff868b818353c404799150d",
+      "url": "https://github.com/chromium/chromium/blob/6bcbefb7cfb334bf29f1b62ab20aae6b8e58b027/device/gamepad/gamepad_standard_mappings_win.cc"
+    },
+    {
+      "source": "mdn",
+      "sha": "a8b5a77bb154e0c3a124fb4af441d11e4259836e",
+      "path": "files/en-us/web/api/gamepad/mapping/index.md",
+      "snapshot": "mdn-gamepad-mapping.md",
+      "same_as_branch_snapshot": true,
+      "sha256": "67d1d42a60aab7137a1de1731423ff4a1a3c638b275083503d1245528b9dcdd0",
+      "url": "https://github.com/mdn/content/blob/a8b5a77bb154e0c3a124fb4af441d11e4259836e/files/en-us/web/api/gamepad/mapping/index.md"
+    },
+    {
+      "source": "w3c",
+      "sha": "81ad0752c4dd06011722b158314eef68cbc2460d",
+      "path": "index.html",
+      "snapshot": "gamepad-spec.html",
+      "same_as_branch_snapshot": true,
+      "sha256": "b57b60f2678674f8dc07802b192cb4fb6d8c88798a9d88a87da5fcf5e85af67e",
+      "url": "https://github.com/w3c/gamepad/blob/81ad0752c4dd06011722b158314eef68cbc2460d/index.html"
+    }
+  ],
+  "app_changed": false,
+  "physical_tests_performed_in_cloud": false
+}

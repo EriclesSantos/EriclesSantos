@@ -1,0 +1,34 @@
+{
+  "retrieved_date": "2026-10-14",
+  "module_path": "atmosphere/contents/010000000000bd00/exefs.nsp",
+  "releases": [
+    {
+      "version": "v0.14.0",
+      "asset": "https://github.com/ndeadly/MissionControl/releases/download/v0.14.0/MissionControl-0.14.0-master-41606c08.zip",
+      "archive_sha256": "b5cbf312a229e778535268b4703e58590ac06844328d0a7a8150f781c5f75d0f",
+      "module_bytes": 165813,
+      "module_sha256": "ed59193cef0a8751b58e75e3d70bdb484b41b8cc4ace80712a6bacf302ee257d"
+    },
+    {
+      "version": "v0.14.1",
+      "asset": "https://github.com/ndeadly/MissionControl/releases/download/v0.14.1/MissionControl-0.14.1-master-141b3aca.zip",
+      "archive_sha256": "9aa57e3c93eedcbecc62547a38d772241fbf51f02f95c02d828741be383586fb",
+      "module_bytes": 165817,
+      "module_sha256": "cc51c3cc404440b0257a0a4c111033417212d571c7f2fc9843c8a9531d24dd14"
+    },
+    {
+      "version": "v0.14.2",
+      "asset": "https://github.com/ndeadly/MissionControl/releases/download/v0.14.2/MissionControl-0.14.2-master-e8d4623c.zip",
+      "archive_sha256": "eb4b0bc669d18aaa500850f3d00b0bf7eb7e727855f1a005af89e378e49fd124",
+      "module_bytes": 166310,
+      "module_sha256": "4a21c9d7333d6f7944f88c2067d49c7fb5a7506e0f83fe5898c7d9abb9ce48fa"
+    },
+    {
+      "version": "v0.15.0",
+      "asset": "https://github.com/ndeadly/MissionControl/releases/download/v0.15.0/MissionControl-0.15.0-master-a54991ef.zip",
+      "archive_sha256": "9fef1bbb2ff0f97238ca5d08672dcbada763d1e4a5ee52ac835ad2ca9f07c6ba",
+      "module_bytes": 166160,
+      "module_sha256": "6fc0a58dce19eab7337c83355ec7c3628e397fd4adc11b3511a726380a035d8f"
+    }
+  ]
+}
