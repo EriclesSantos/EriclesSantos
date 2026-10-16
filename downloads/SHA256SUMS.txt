@@ -1,2 +1,2 @@
 6d0ae0e4aa6934ba8cd836714156a2fb82ed14aa9ce3dd7f821097c989f898aa  nordhub-procontroller.apk
-76f7bdea8cdb2aba33cbc0b37bb4fbc2d235e6a8d0f2e4047276e208c261f35a  nordhub-procontroller-pc.zip
+18c09595ef9b76f715cec407944af981170799ebbc211688de62c5bdfbfd5065  nordhub-procontroller-pc.zip
