@@ -45,11 +45,13 @@ Fluxo de teste: celular no destino PC → gamepad em `Win+R → joy.cpl` → abr
 | Reconexão da 0.2.8 | Fluxo para vínculo salvo implementado e testado por software; aguarda teste físico da nova instalação. |
 | Windows deste desktop | HID do celular detectado e entradas reais recebidas. Xbox virtual criado e reconhecido pela Steam. |
 | Dimraeth no desktop | Sem resposta no jogo, inclusive após reabri-lo. Investigação aberta; o ícone na Steam não comprova funcionamento. |
-| DuckStation no Switch / The King of Fighters ’97 | Sem resposta no emulador, embora o HOME responda. Conferir jogador, porta 1 e perfil; [guia e evidências](../switchphone-controller/docs/duckstation-switch.md). |
+| DuckStation no Switch / The King of Fighters ’97 | Perfil digital específico instalado, com gravação conferida. Resposta no jogo após o ajuste ainda pendente; [guia e evidências](../switchphone-controller/docs/duckstation-switch.md). |
 | Outros notebooks, desktops e jogos | Objetivo de compatibilidade; não há garantia universal. Dependências, Bluetooth e suporte do jogo precisam ser atendidos. |
 | Xbox, PS4 e PS5 físicos | Sem suporte direto. Layout visual e XInput do Windows não implementam a autenticação/protocolo desses consoles. Remote Play/adaptadores seriam integrações separadas. |
 
 Não foram modificadas configurações da Steam, filtros HidHide ou arquivos do jogo. O auxiliar é um executável de teste sem assinatura de distribuição Windows; o APK tem assinatura Android verificada.
+
+[Guia de mais controles nos emuladores e jogos nativos do Switch](../switchphone-controller/docs/switch-controls.md): configurações conferidas de DuckStation, RetroArch, PPSSPP e melonDS, com resultados e limites.
 
 ## Alterações da 0.2.8
 

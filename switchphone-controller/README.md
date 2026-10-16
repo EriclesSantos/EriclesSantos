@@ -64,6 +64,8 @@ Validação desta alteração: 6.983 asserções JVM; assemble/lint de release e
 
 No relato de The King of Fighters ’97 com a 0.2.7, os comandos funcionaram no HOME do Switch, mas não no emulador. Isso confirma a entrada básica no console e direciona a investigação para jogador/porta/perfil do DuckStation. Os avisos de sensores ausentes, isoladamente, não comprovam a causa. Veja o [guia e as evidências do DuckStation](docs/duckstation-switch.md).
 
+Foi instalado um perfil digital específico do KOF ’97 e foram revisadas as entradas gerais dos emuladores disponíveis. [Ajustes, uso de mais controles e limites nos jogos nativos do Switch](docs/switch-controls.md). Gravações conferidas por releitura; resposta nos jogos após o ajuste ainda aguarda confirmação.
+
 ## Consoles físicos e possíveis evoluções
 
 Xbox/PS4/PS5 exigiriam uma integração separada por Remote Play ou um adaptador de hardware realmente compatível, validado por modelo, firmware e jogo. Não há suporte direto a essas plataformas neste código. O XInput do auxiliar é uma interface de entrada do Windows.

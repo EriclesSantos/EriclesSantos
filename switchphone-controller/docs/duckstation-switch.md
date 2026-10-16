@@ -29,4 +29,16 @@ A regressão reproduz 2.000 pares alternados de pedidos IMU/pacotes de vibraçã
 - [Documentação do mesmo port: associação de botões](https://github.com/RSDuck/duckstation#bindings-for-qt-frontend). A interface exata depende da compilação instalada.
 - [Pesquisa original do protocolo Nintendo: subcomandos 0x40/0x48](https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/bluetooth_hid_subcommands_notes.md).
 
-Estado: correções de tráfego/diagnóstico testadas por software; funcionamento no jogo e ajuste do perfil instalado ainda aguardam validação física.
+## Configuração instalada conferida por DBI
+
+O executável instalado informa `pre-release 1`. O catálogo identifica o jogo japonês como **SLPM-86084**. A base de dados da revisão `4cf634524abbfb9edcb0a1f3748f508fbffa56d8` lista esse jogo com `DigitalController`, sem vibração. No arquivo global havia configuração antiga `Controller1` junto de `Pad1`, que tinha vínculos apenas para `P0`, e nenhum perfil próprio desse jogo.
+
+Foi criado `switch/duckstation/gamesettings/SLPM-86084.ini`: porta 1 digital; botões e direcional vindos de P0 ou P1 como alternativas para um jogador; analógico esquerdo também mapeado às direções digitais. As demais opções do jogo não foram alteradas. Esse perfil não organiza duas pessoas na mesma partida: P0 e P1 comandam o mesmo jogador nesse teste. Para dois jogadores, remapeie cada porta separadamente.
+
+Depois, a pedido do usuário para ampliar os controles em outros emuladores, o perfil global recebeu `Type = AnalogController` explícito em Pad1, Pad2/P1 separado e abertura do menu de pausa por Minus+Plus em ambos os jogadores. O perfil digital do KOF continua prevalecendo apenas nesse jogo. As configurações globais antigas foram preservadas em backup local; arquivos privados do usuário não são distribuídos no código.
+
+Cada arquivo gravado foi lido de volta e comparado por SHA-256. Isso comprova a gravação, sem substituir o teste de comandos no emulador. A confirmação física após o ajuste ainda está pendente.
+
+Fontes da revisão consultada: [catálogo do KOF ’97](https://github.com/RSDuck/duckstation/blob/4cf634524abbfb9edcb0a1f3748f508fbffa56d8/data/resources/gamedb.yaml#L83642), [entrada Switch](https://github.com/RSDuck/duckstation/blob/4cf634524abbfb9edcb0a1f3748f508fbffa56d8/src/util/switch_input_source.cpp), [leitura de múltiplos vínculos INI](https://github.com/RSDuck/duckstation/blob/4cf634524abbfb9edcb0a1f3748f508fbffa56d8/src/util/ini_settings_interface.cpp).
+
+Para os demais emuladores e jogos nativos, veja [controles no Switch](switch-controls.md).
