@@ -2,6 +2,14 @@
 
 [Baixar APK Android 0.2.7](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.7-experimental.apk) · [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt)
 
+## Pesquisa oficial: próxima ação para o Switch
+
+[Pesquisa completa e fontes](pesquisa-apps-bluetooth.md). MissionControl **0.16.0**, de 02/10/2026, amplia explicitamente o filtro de classe Bluetooth do JoyCon Droid sem root. Conferimos que o patch da família HOS 21.x também mudou. A instalação 0.14.2 já identificada é anterior a essa correção; o arquivo antigo ser oficial não garante a aceitação das classes adicionais.
+
+[Release oficial MissionControl 0.16.0](https://github.com/ndeadly/MissionControl/releases/tag/v0.16.0). Próximo caminho fundamentado: conferir uma instalação oficial compatível, preservando a anterior; não requer emitir outro APK. O README recomenda Atmosphère atualizado e só exige AMS 1.12.0 especificamente em HOS 23+. Não foi comprovada a combinação exata com AMS 1.10.1/HOS 21.1.0, nem é necessário atualizar HOS para 23 para esta hipótese. Depois da atualização, use no mesmo app **Switch experimental → Padrão • aguardar Switch**, com protocolo Nintendo; Teste 4 permanece genérico. Causa no Xiaomi ainda não confirmada.
+
+No notebook, o usuário relatou resposta no teste Windows e apenas X num jogo de navegador. A auditoria identificou diferenças concretas de mapeamento Web, sem comprovar por que só X responde. No desktop, outros aparelhos pareiam com o dongle; o diagnóstico HID dessa tentativa ainda não foi recebido. A sessão de trabalho continua em Linux na nuvem, sem acesso técnico ao Windows/radio local.
+
 ## Resultado atual
 
 O Teste 4 da 0.2.7 foi executado pelo usuário com vínculo salvo e após removê-lo no celular: nenhum canal HID abriu. Na tentativa sem vínculo salvo, o app registrou HID aos 1 s, Android iniciou BONDING aos 14 s e retornou NONE aos 20 s, sem BONDED ou callback HID. Motivo 0 continua desconhecido. Os testes 1–3 da 0.2.6 também falharam. **A compatibilidade com esse Switch ainda não foi resolvida.** Não é necessário repetir esses testes ou baixar outro coletor.

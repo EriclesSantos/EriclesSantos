@@ -1,5 +1,7 @@
 # Comparação: SwitchPhone, DualShock 4 e DualSense
 
+**Pesquisa atualizada em 16/10/2026:** [correção oficial MissionControl 0.16.0, comparação com JoyCon Droid/Companion e mapeamento no navegador](pesquisa-apps-bluetooth.md). O filtro nativo de classes de celulares mudou depois da0.14.2; é uma nova pista concreta, ainda sem validação no console do usuário.
+
 Análise em 14/10/2026 usando código e evidências já disponíveis. Novas coletas suspensas a pedido do usuário. Não há correção física definitiva demonstrada; o APK não foi alterado para disfarçar essa limitação.
 
 ## Conclusão
