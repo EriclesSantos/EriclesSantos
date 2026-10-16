@@ -2,6 +2,8 @@
 
 [Baixar APK Android 0.2.7](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-0.2.7-experimental.apk) · [Código-fonte](switchphone-controller-source.zip) · [SHA-256](SHA256SUMS.txt)
 
+[Continuar no Codex local do Windows](CONTINUAR-NO-WINDOWS.md) · [Pacote com código e contexto](https://raw.githubusercontent.com/EriclesSantos/EriclesSantos/main/downloads/switchphone-sessao-local.zip). A sessão não é movida automaticamente: extraia e abra a pasta no Codex local.
+
 ## Pesquisa oficial: próxima ação para o Switch
 
 [Pesquisa completa e fontes](pesquisa-apps-bluetooth.md). MissionControl **0.16.0**, de 02/10/2026, amplia explicitamente o filtro de classe Bluetooth do JoyCon Droid sem root. Conferimos que o patch da família HOS 21.x também mudou. A instalação 0.14.2 já identificada é anterior a essa correção; o arquivo antigo ser oficial não garante a aceitação das classes adicionais.
