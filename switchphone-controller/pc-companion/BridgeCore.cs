@@ -64,7 +64,19 @@ namespace Nordhub.ProController {
    return r;
   }
  }
- public sealed class VirtualXbox:IDisposable {
+ public interface IXboxTarget:IDisposable { uint Index {get;} void Send(XboxReport report); }
+ public interface IJoystickReader { bool Read(uint id,out Joystick.Caps caps,out Joystick.State state); Joystick.Device[] List(); }
+ public sealed class WinMMReader:IJoystickReader {
+  public bool Read(uint id,out Joystick.Caps caps,out Joystick.State state){state=new Joystick.State();return Joystick.joyGetDevCapsW((UIntPtr)id,out caps,(uint)Marshal.SizeOf(typeof(Joystick.Caps)))==0&&Joystick.Read(id,out state);}
+  public Joystick.Device[] List(){return Joystick.List();}
+ }
+ public sealed class VirtualXbox:IXboxTarget {
+  [UnmanagedFunctionPointer(CallingConvention.StdCall)]delegate void Notification(IntPtr client,IntPtr target,byte large,byte small,byte led,IntPtr user);
+  [DllImport("ViGEmClient.dll",CallingConvention=CallingConvention.Cdecl)]static extern uint vigem_target_x360_register_notification(IntPtr client,IntPtr target,Notification callback,IntPtr user);
+  [DllImport("ViGEmClient.dll",CallingConvention=CallingConvention.Cdecl)]static extern void vigem_target_x360_unregister_notification(IntPtr target);
+  readonly object feedbackLock=new object();byte largeMotor,smallMotor;Notification notification;bool feedbackRegistered;
+  public void EnableFeedback(){if(feedbackRegistered)return;notification=(c,t,l,s,led,u)=>{lock(feedbackLock){largeMotor=l;smallMotor=s;}};Check(vigem_target_x360_register_notification(client,target,notification,IntPtr.Zero));feedbackRegistered=true;}
+  public byte[] Feedback(){lock(feedbackLock)return new[]{largeMotor,smallMotor};}
   const string Library="ViGEmClient.dll";
   [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern IntPtr LoadLibraryEx(string path,IntPtr file,uint flags);
   [DllImport(Library,CallingConvention=CallingConvention.Cdecl)]static extern IntPtr vigem_alloc();
@@ -104,25 +116,34 @@ namespace Nordhub.ProController {
   }
   public void Send(XboxReport report){if(!attached)throw new ObjectDisposedException("VirtualXbox");Check(vigem_target_x360_update(client,target,report));}
   public void Dispose(){
+   if(feedbackRegistered){vigem_target_x360_unregister_notification(target);feedbackRegistered=false;}
    if(attached){vigem_target_x360_update(client,target,new XboxReport());vigem_target_remove(client,target);attached=false;}
    if(target!=IntPtr.Zero){vigem_target_free(target);target=IntPtr.Zero;}
    if(client!=IntPtr.Zero){vigem_disconnect(client);vigem_free(client);client=IntPtr.Zero;}
   }
  }
  public sealed class Bridge:IDisposable {
-  public readonly Joystick.Device Source;readonly VirtualXbox xbox;public long Reports;public uint XboxIndex {get{return xbox.Index;}}
+  public readonly Joystick.Device Source;readonly IXboxTarget xbox;readonly IJoystickReader reader;public long Reports;public uint XboxIndex {get{return xbox.Index;}}
+  public bool SourceAvailable {get;private set;} public string SourceStatus {get;private set;}
+  bool disposed;DateTime nextLookup;
   public XboxReport Last {get;private set;}
-  public Bridge(Joystick.Device source){Source=source;xbox=new VirtualXbox();}
+  public Bridge(Joystick.Device source):this(source,new WinMMReader(),new VirtualXbox()){}
+  public Bridge(Joystick.Device source,IJoystickReader reader,IXboxTarget xbox){Source=source;this.reader=reader;this.xbox=xbox;}
+  bool Matches(Joystick.Caps caps){return caps.Mid==Source.Capabilities.Mid&&caps.Pid==Source.Capabilities.Pid&&!Joystick.IsXbox(caps);}
   public void Tick(){
+   if(disposed)throw new ObjectDisposedException("Bridge");
    Joystick.Caps current;Joystick.State state;
-   bool same=Joystick.joyGetDevCapsW((UIntPtr)Source.Id,out current,(uint)Marshal.SizeOf(typeof(Joystick.Caps)))==0&&current.Mid==Source.Capabilities.Mid&&current.Pid==Source.Capabilities.Pid&&!Joystick.IsXbox(current);
-   if(!same){
-    Joystick.Device found=null;foreach(Joystick.Device device in Joystick.List())if(device.Capabilities.Mid==Source.Capabilities.Mid&&device.Capabilities.Pid==Source.Capabilities.Pid&&device.Name==Source.Name){if(found!=null)throw new InvalidOperationException("Mais de um dispositivo corresponde ao celular. Encerre e selecione novamente.");found=device;}
-    if(found!=null){Source.Id=found.Id;same=true;}
+   bool same=reader.Read(Source.Id,out current,out state)&&Matches(current);
+   if(!same&&DateTime.UtcNow>=nextLookup){
+    nextLookup=DateTime.UtcNow.AddSeconds(1);Joystick.Device found=null;bool ambiguous=false;
+    foreach(Joystick.Device device in reader.List())if(Matches(device.Capabilities)&&device.Name==Source.Name){if(found!=null){ambiguous=true;break;}found=device;}
+    if(found!=null&&!ambiguous){Source.Id=found.Id;same=reader.Read(Source.Id,out current,out state)&&Matches(current);}
+    SourceStatus=ambiguous?"Há mais de um celular correspondente. Desconecte o adicional e selecione novamente.":"Celular indisponível. Xbox preservado em neutro; aguardando reconexão.";
    }
-   if(!same||!Joystick.Read(Source.Id,out state))throw new InvalidOperationException("Celular desconectado. O controle virtual foi encerrado; conecte o app e inicie novamente.");
-   XboxReport report=Mapper.Convert(state,Source.Capabilities);xbox.Send(report);Last=report;Reports++;
+   SourceAvailable=same;
+   if(same){Source.Capabilities=current;SourceStatus="Celular conectado; comandos encaminhados.";nextLookup=DateTime.MinValue;}
+   XboxReport report=same?Mapper.Convert(state,current):new XboxReport();xbox.Send(report);Last=report;Reports++;
   }
-  public void Dispose(){xbox.Dispose();}
+  public void Dispose(){if(disposed)return;disposed=true;xbox.Dispose();SourceAvailable=false;}
  }
 }

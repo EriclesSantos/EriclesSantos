@@ -33,6 +33,12 @@ public final class PairingFlow {
         if(next!=Step.CONNECTING&&next!=Step.NEGOTIATING&&next!=Step.ACTIVE)return false;
         move(next);return true;
     }
+    /** Attach a recreated screen without issuing pairing or HID registration again. */
+    public boolean restoreTransport(Step current){
+        if(step!=Step.IDLE&&step!=Step.ERROR&&step!=Step.CANCELLED)return false;
+        if(current!=Step.REGISTER&&current!=Step.WAIT_HOST&&current!=Step.CONNECTING&&current!=Step.NEGOTIATING&&current!=Step.ACTIVE)return false;
+        attempt++;move(current);issued=current==Step.REGISTER;return true;
+    }
     public boolean awaitingExternal(){return issued&&(step==Step.PERMISSION||step==Step.ENABLE||step==Step.VISIBILITY);}
     public boolean liveTransport(){return step==Step.REGISTER||step==Step.WAIT_HOST||step==Step.CONNECTING||step==Step.NEGOTIATING||step==Step.ACTIVE;}
     public boolean waitingHost(){return step==Step.WAIT_HOST||step==Step.REGISTER;}

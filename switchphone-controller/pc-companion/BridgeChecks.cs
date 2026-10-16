@@ -2,6 +2,33 @@ using System;
 using System.Threading;
 using Nordhub.ProController;
 class BridgeChecks {
+ sealed class FakeReader:IJoystickReader {
+  public bool Available=true;public uint Id=0;public Joystick.State Current=Neutral();public int Lists;
+  public bool Read(uint id,out Joystick.Caps caps,out Joystick.State state){caps=Caps();caps.Mid=911;state=Current;return Available&&id==Id;}
+  public Joystick.Device[] List(){Lists++;return Available?new[]{new Joystick.Device{Id=Id,Name="Nördhub test",Capabilities=TestCaps()}}:new Joystick.Device[0];}
+ }
+ sealed class FakeXbox:IXboxTarget {
+  public int Sends,Disposals;public XboxReport Last;public uint Index{get{return 0;}}
+  public void Send(XboxReport report){Sends++;Last=report;}
+  public void Dispose(){Disposals++;}
+ }
+ static Joystick.Caps TestCaps(){Joystick.Caps caps=Caps();caps.Mid=911;return caps;}
+ static void Continuity(){
+  FakeReader source=new FakeReader();FakeXbox target=new FakeXbox();
+  Bridge bridge=new Bridge(new Joystick.Device{Id=0,Name="Nördhub test",Capabilities=TestCaps()},source,target);
+  source.Current.Buttons=1;source.Current.X=65535;bridge.Tick();
+  Check(bridge.SourceAvailable&&target.Last.Buttons==0x1000&&target.Last.LeftX==32767,"Live phone forwards held button and stick");
+  source.Available=false;bridge.Tick();
+  Check(!bridge.SourceAvailable&&target.Last.Equals(new XboxReport()),"Connection loss releases every control, retaining the Xbox");
+  for(int i=0;i<50;i++)bridge.Tick();
+  Check(target.Disposals==0&&target.Sends==52&&source.Lists==1,"Temporary loss does not delete Xbox or busy-loop device enumeration");
+  source.Available=true;source.Current=Neutral();source.Current.Buttons=2;bridge.Tick();
+  Check(bridge.SourceAvailable&&target.Last.Buttons==0x2000&&target.Last.LeftX==0,"Same-slot reconnect resumes without stale held controls");
+  source.Id=4;bridge.Tick();
+  Check(bridge.SourceAvailable&&bridge.Source.Id==4&&target.Last.Buttons==0x2000,"Windows joystick slot change finds the same source");
+  bridge.Dispose();bridge.Dispose();Check(target.Disposals==1,"Manual stop removes the virtual target exactly once");
+  bool rejected=false;try{bridge.Tick();}catch(ObjectDisposedException){rejected=true;}Check(rejected,"Late timer cannot send after manual stop");
+ }
  static int checks;
  static void Check(bool condition,string message){checks++;if(!condition)throw new Exception(message);}
  static Joystick.Caps Caps(){return new Joystick.Caps{XMin=0,XMax=65535,YMin=0,YMax=65535,RMin=0,RMax=65535,UMin=0,UMax=65535,Flags=6};}
@@ -20,7 +47,7 @@ class BridgeChecks {
    Check(Mapper.Axis(0,0,0,false)==0,"Invalid axis range neutral");
    s=Neutral();s.R=65535;s.U=0;r=Mapper.Convert(s,caps);Check(r.RightX==short.MaxValue&&r.RightY==short.MaxValue,"Rx/Ry map from WinMM R/U");
    s=Neutral();s.Buttons=0x3fff;r=Mapper.Convert(s,caps);Check(r.Buttons==0xf7f0&&r.LeftTrigger==255&&r.RightTrigger==255,"Combined controls");
-   Console.WriteLine("PASS: "+checks+" Windows mapping checks");
+   Continuity();Console.WriteLine("PASS: "+checks+" Windows mapping and reconnect checks");
    if(args.Length>0&&args[0]=="--virtual-neutral"){
     for(uint slot=0;slot<4;slot++){VirtualXbox.XboxState old;uint err=VirtualXbox.XInputGetState(slot,out old);Console.WriteLine("Before slot "+slot+": "+err+" leftX "+old.Gamepad.LeftX+" buttons "+old.Gamepad.Buttons);}
     uint index;using(VirtualXbox xbox=new VirtualXbox()){

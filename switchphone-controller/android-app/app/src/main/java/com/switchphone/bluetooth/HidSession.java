@@ -8,7 +8,7 @@ import com.switchphone.controller.ControllerState;
 import com.switchphone.controller.PairingPulse;
 import com.switchphone.protocol.NintendoProtocol;
 
-/** Foreground-only HID transport. UI state follows callbacks, never a simulated connection. */
+/** HID transport owned by the foreground service. UI follows confirmed callbacks. */
 public final class HidSession implements AutoCloseable {
     public enum Phase { IDLE, REQUESTING, REGISTERING, READY, CONNECTING, NEGOTIATING, ACTIVE, ERROR, CLOSED }
     public interface Listener {
@@ -120,7 +120,7 @@ public final class HidSession implements AutoCloseable {
                 if(host==null&&phase!=Phase.CONNECTING)phase(Phase.READY,"HID registrado; celular aguardando conexão do "+(hidProfile.switchIdentity()?"Switch":"computador")+".");
                 else notice("Registro HID confirmado durante a conexão existente.");
             }
-            else fail("HID desregistrado pelo Android. Mantenha o aplicativo em primeiro plano.");
+            else fail("HID desregistrado pelo Android. Confira a permissão Bluetooth e a restrição de bateria do app; reconecte para retomar.");
         }
         @Override public void onConnectionStateChanged(BluetoothDevice device,int value){
             if(closed||phase==Phase.ERROR)return;

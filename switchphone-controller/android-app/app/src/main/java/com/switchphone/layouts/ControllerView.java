@@ -5,6 +5,7 @@ import android.graphics.*;
 import android.util.SparseArray;
 import android.view.*;
 import com.switchphone.controller.ControllerState;
+import com.switchphone.controller.AdvancedInput;
 import com.switchphone.settings.Preferences;
 import com.switchphone.haptics.Haptics;
 import java.util.Collections;
@@ -24,13 +25,13 @@ public final class ControllerView extends View {
     private final int layout;
     private final boolean preview;
     private boolean inputAvailable;
-    private float lx,ly,rx,ry,radius,unit;
+    private float lx,ly,rx,ry,radius,unit,visualLt,visualRt;
     private float leftX,leftY,rightX,rightY;
     private int held,hat=8;
     private int accent;
     private static final class Touch {
-        int stick; float x,y;
-        Touch(int stick,float x,float y) { this.stick=stick;this.x=x;this.y=y; }
+        int stick,trigger=-1;float x,y,startY;
+        Touch(int stick,float x,float y) { this.stick=stick;this.x=x;this.y=y;this.startY=y; }
     }
     public ControllerView(Context context,int layout,ControllerState state,Preferences prefs,Runnable changed,boolean preview) {
         super(context);this.layout=layout;this.state=state;this.prefs=prefs;this.changed=changed;this.preview=preview;this.inputAvailable=preview;
@@ -40,6 +41,7 @@ public final class ControllerView extends View {
         if (!preview) setKeepScreenOn(true);
     }
     public ControllerView(Context context) { this(context,0,new ControllerState(),new Preferences(context),()->{},true); }
+    public int layoutIndex(){return layout;}
     @Override protected void onSizeChanged(int w,int h,int oldw,int oldh) {
         if(!preview)release();
         if(w<=0||h<=0)return;
@@ -70,6 +72,7 @@ public final class ControllerView extends View {
             paint.setColor(!inputAvailable?Color.rgb(30,35,43):down?Color.rgb(42,62,76):Color.rgb(23,35,49));
             canvas.save();if(!inputAvailable||down)canvas.translate(0,2*unit);
             shape(canvas,k);
+            if((k.id==6||k.id==7)&&down&&prefs.gradual()){float value=k.id==6?visualLt:visualRt;paint.setColor(led);paint.setAlpha(65);canvas.save();canvas.clipRect(k.x-k.w/2,k.y-k.h/2,k.x-k.w/2+k.w*value,k.y+k.h/2);shape(canvas,k);canvas.restore();paint.setAlpha(255);}
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth((down?3:1.6f)*unit);paint.setColor(led);paint.setAlpha(inputAvailable?255:65);shape(canvas,k);
             paint.setAlpha(255);paint.setStyle(Paint.Style.FILL);
             text(canvas,k.label,k.x,k.y,(k.round?27:14)*unit,!inputAvailable?Color.rgb(118,127,139):k.id<4?led:Color.rgb(233,241,247));
@@ -110,9 +113,12 @@ public final class ControllerView extends View {
         getParent().requestDisallowInterceptTouchEvent(true);
         int action=event.getActionMasked(),index=event.getActionIndex();
         if (action==MotionEvent.ACTION_DOWN || action==MotionEvent.ACTION_POINTER_DOWN) {
+            requestUnbufferedDispatch(event);
             int stick=stickAt(event.getX(index),event.getY(index));
             for (int i=0;i<touches.size();i++) if (stick!=0 && touches.valueAt(i).stick==stick) stick=-1;
-            touches.put(event.getPointerId(index),new Touch(stick,event.getX(index),event.getY(index)));
+            Touch touch=new Touch(stick,event.getX(index),event.getY(index));
+            if(stick==0)for(Key k:keys)if((k.id==6||k.id==7)&&hit(k,touch.x,touch.y)){touch.trigger=k.id;break;}
+            touches.put(event.getPointerId(index),touch);
             Haptics.press(getContext(),prefs.vibration());
         }
         for (int i=0;i<event.getPointerCount();i++) {
@@ -125,30 +131,36 @@ public final class ControllerView extends View {
         update();return true;
     }
     private void update() {
-        held=0;lx=ly=rx=ry=0;boolean up=false,down=false,left=false,right=false;
+        held=0;lx=ly=rx=ry=0;float lt=0,rt=0;boolean up=false,down=false,left=false,right=false;
         for (int i=0;i<touches.size();i++) {
             Touch t=touches.valueAt(i);
             if (t.stick>0) {
                 float cx=t.stick==1?leftX:rightX,cy=t.stick==1?leftY:rightY;
                 float x=(t.x-cx)/radius,y=(t.y-cy)/radius;
                 float length=(float)Math.hypot(x,y); if(length>1) {x/=length;y/=length;}
-                x=ControllerState.filterAxis(x,prefs.deadZone()/100f,prefs.sensitivity()/100f);
-                y=ControllerState.filterAxis(y,prefs.deadZone()/100f,prefs.sensitivity()/100f);
+                float[] filtered=AdvancedInput.stick(x,y,(t.stick==1?prefs.leftDeadZone():prefs.rightDeadZone())/100f,(t.stick==1?prefs.leftGain():prefs.rightGain())/100f,prefs.curve(),prefs.invertX(),prefs.invertY());x=filtered[0];y=filtered[1];
                 if (t.stick==1) {lx=x;ly=y;} else {rx=x;ry=y;}
             } else if (t.stick==0) {
+                if(t.trigger>=0){held|=1<<t.trigger;float v=AdvancedInput.trigger(t.y-t.startY,100*unit,!prefs.gradual());if(t.trigger==6)lt=Math.max(lt,v);else rt=Math.max(rt,v);continue;}
                 // D-pad diagonals are reachable within its square footprint.
                 float dx=geometry.dpadX,dy=geometry.dpadY,d=geometry.dpadStep;
                 if (Math.abs(t.x-dx)<=d*1.48f && Math.abs(t.y-dy)<=d*1.48f) {
                     up|=t.y<dy-d*.40f;down|=t.y>dy+d*.40f;
                     left|=t.x<dx-d*.40f;right|=t.x>dx+d*.40f;
                 }
-                for (Key k:keys) if (k.id<14 && k.contains(t.x,t.y)) held|=1<<k.id;
+                for (Key k:keys) if (k.id<14&&hit(k,t.x,t.y))held|=1<<k.id;
             }
         }
         int horizontal=(right?1:0)-(left?1:0),vertical=(down?1:0)-(up?1:0);
         hat=vertical<0?(horizontal<0?7:horizontal>0?1:0):vertical>0?(horizontal<0?5:horizontal>0?3:4):horizontal<0?6:horizontal>0?2:8;
-        state.replace(held,hat,lx,ly,rx,ry);changed.run();invalidate();
+        if((held&(1<<6))!=0&&lt==0)lt=1;if((held&(1<<7))!=0&&rt==0)rt=1;
+        visualLt=lt;visualRt=rt;
+        int mapped=AdvancedInput.remap(held,prefs.mapping());state.replace(mapped,hat,lx,ly,rx,ry);
+        float mappedLt=0,mappedRt=0;int[] mapping=prefs.mapping();for(int source=0;source<14;source++)if((held&(1<<source))!=0){float value=source==6?lt:source==7?rt:1;if(mapping[source]==6)mappedLt=Math.max(mappedLt,value);if(mapping[source]==7)mappedRt=Math.max(mappedRt,value);}
+        state.triggers(mappedLt,mappedRt);
+        changed.run();postInvalidateOnAnimation();
     }
+    private boolean hit(Key key,float x,float y){float margin=4*unit;return key.round?Math.hypot(x-key.x,y-key.y)<=key.w/2+margin:Math.abs(x-key.x)<=key.w/2+margin&&Math.abs(y-key.y)<=key.h/2+margin;}
     public void setInputAvailable(boolean available) { if(inputAvailable==available)return;inputAvailable=available;if(!available)release();invalidate(); }
     public void release() { touches.clear();update(); }
     @Override public boolean performClick() { super.performClick();return true; }

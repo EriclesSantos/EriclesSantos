@@ -23,14 +23,15 @@ import java.util.ArrayDeque;
 /** Native offline UI; indicators follow confirmed transport/protocol callbacks. */
 public final class MainActivity extends Activity {
     private static final int PERMISSIONS=1,ENABLE_BT=2,VISIBLE_BT=3;
-    private final InputRouter inputs=new InputRouter();
-    private final ControllerState state=inputs.transport();
+    private InputRouter inputs=new InputRouter();
+    private ControllerState state=inputs.transport();
     private final PairingFlow flow=new PairingFlow();
     private final BondMonitor bond=new BondMonitor();
     private LinkExperiment experiment=new LinkExperiment(0);
     private final ArrayDeque<String> diagnostics=new ArrayDeque<>();
     private Preferences prefs;
     private HidSession session;
+    private com.switchphone.controller.MotionInput motion;
     private TextView status,detail;
     private ConnectionIndicator indicator;
     private Button pairButton,reconnectButton,stopButton,confirmButton;
@@ -50,19 +51,21 @@ public final class MainActivity extends Activity {
     private IdentityLease pairingIdentity;
     private long visibleUntil,attemptStarted;
     private final android.os.Handler ui=new android.os.Handler(android.os.Looper.getMainLooper());
-    private Runnable preflightTimeout,identityPoll,hostTick,backgroundExit,bondRecoveryTimeout;
+    private Runnable preflightTimeout,identityPoll,hostTick,bondRecoveryTimeout;
     @Override public void onCreate(Bundle saved){
         super.onCreate(saved);prefs=new Preferences(this);pairingIdentity=new IdentityLease(this);
         BluetoothManager manager=getSystemService(BluetoothManager.class);
         adapter=manager==null?null:manager.getAdapter();
         getWindow().setStatusBarColor(Color.rgb(12,19,28));getWindow().setNavigationBarColor(Color.rgb(12,19,28));
-        if(adapter!=null&&permitted()){
+        if(adapter!=null&&permitted()&&!HidForegroundService.ownsTransport()){
             try{new IdentityLease(this).recover(adapter);}catch(SecurityException|IllegalStateException e){notice="Não foi possível restaurar o nome Bluetooth. Tente Parear com Bluetooth ligado.";phase=HidSession.Phase.ERROR;message="Falha na recuperação do nome Bluetooth.";}
         }
         registerBluetoothEvents();home();
+        if(HidForegroundService.ownsTransport())restoreExistingSession();
     }
     private int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
     private LinearLayout base(String title,String selected){
+        if(motion!=null)motion.stop();
         release();controller=null;screen=selected;previewLayout=-1;reconnectButton=stopButton=confirmButton=null;
         getWindow().getDecorView().setSystemUiVisibility(selected.equals("control")
             ?View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY:View.SYSTEM_UI_FLAG_VISIBLE);
@@ -105,11 +108,15 @@ public final class MainActivity extends Activity {
             });
             info(content,"Teste 4 mantém o nome Pro Controller com perfil HID genérico. Verifica descoberta e canal; mapeamento dos botões no Switch não confirmado. Testes 1–3 são as alternativas anteriores de vínculo/conexão.");
         }
-        info(content,prefs.nintendo()?"Pro Controller experimental para Switch com MissionControl. Primeiro funcionamento confirmado pelo usuário com MissionControl 0.16.0. Com vínculo salvo, Conectar reutiliza a associação; mantenha o app aberto.":"Gamepad genérico para computador. Reconhecimento e entradas confirmados pelo usuário no Windows com Xiaomi/Android 16. Jogos e adaptadores Bluetooth precisam de validação.");
+        info(content,prefs.nintendo()?"Pro Controller experimental para Switch com MissionControl. Primeiro funcionamento confirmado pelo usuário com MissionControl 0.16.0. Com vínculo salvo, Conectar reutiliza a associação; a sessão continua com a tela bloqueada até Desconectar.":"Gamepad genérico para computador. Reconhecimento e entradas confirmados pelo usuário no Windows com Xiaomi/Android 16. Jogos e adaptadores Bluetooth precisam de validação.");
         LinearLayout row=new LinearLayout(this);content.addView(row);
         reconnectButton=button(row,"Reconectar",this::reconnect);button(row,"Parear novo",()->pair(null,true));stopButton=button(row,"Encerrar",this::stop);button(row,"Diagnóstico",this::diagnostics);
         LinearLayout nav=new LinearLayout(this);content.addView(nav);
         button(nav,"Abrir controle",this::control);button(nav,"Testar toque",this::testTouch);button(nav,"Layouts",this::layouts);button(nav,"Configurações",this::settings);
+        if(!prefs.nintendo()){
+            info(content,"Escolha a conexão com o PC:");LinearLayout transport=new LinearLayout(this);content.addView(transport);
+            button(transport,"Bluetooth",this::pair);button(transport,"Wi-Fi / Wireless",()->{stop();startActivity(new Intent(this,com.switchphone.wifi.WifiControllerActivity.class));});
+        }
         info(content,"Layout: "+ControllerView.NAMES[prefs.layout()]+". Toque Parear no topo, aceite os pedidos do Android e inicie o pareamento pelo "+(prefs.nintendo()?"Switch em Controles → Mudar ordem/modo de segurar.":"computador. No Windows, confira entradas em Win+R → joy.cpl."));
         if(adapter==null)info(content,"Este dispositivo não oferece adaptador Bluetooth.");refresh();
     }
@@ -121,6 +128,12 @@ public final class MainActivity extends Activity {
         if(testing){TextView banner=text("TESTE LOCAL • toque e mova os controles • nenhum comando vai por Bluetooth",12);banner.setTextColor(Color.rgb(255,205,110));root.addView(banner);}
         controller=new ControllerView(this,prefs.layout(),inputs.touch(),prefs,()->{if(!testing)send();},false);
         root.addView(controller,new LinearLayout.LayoutParams(-1,0,1));refresh();
+        startMotion();
+    }
+    private void startMotion(){
+        if(motion!=null)motion.stop();
+        motion=new com.switchphone.controller.MotionInput(this,state,prefs,this::send);
+        if(resumed&&screen.equals("control")&&session!=null&&session.canSendInput()&&!inputs.testing())motion.start();
     }
     private void controlMenu(){
         PopupMenu menu=new PopupMenu(this,pairButton);
@@ -132,6 +145,9 @@ public final class MainActivity extends Activity {
         menu.getMenu().add(inputs.testing()?"Sair do teste local":"Testar toque").setOnMenuItemClickListener(item->{testTouch();return true;});
         menu.getMenu().add("Escolher layout").setOnMenuItemClickListener(item->{layouts();return true;});
         menu.getMenu().add("Ajustes").setOnMenuItemClickListener(item->{settings();return true;});
+        menu.getMenu().add("Trocar perfil").setOnMenuItemClickListener(item->{String[] names=prefs.profiles().toArray(new String[0]);new AlertDialog.Builder(this).setTitle(names.length==0?"Salve um perfil em Ajustes primeiro":"Perfis").setItems(names,(d,i)->{release();prefs.loadProfile(names[i]);control();}).setNegativeButton("Voltar",null).show();return true;});
+        menu.getMenu().add("Perfis e recursos avançados").setOnMenuItemClickListener(item->{startActivity(new Intent(this,AdvancedSettingsActivity.class));return true;});
+        menu.getMenu().add("Calibrar giroscópio").setEnabled(motion!=null&&motion.available()&&prefs.gyroMode()!=0).setOnMenuItemClickListener(item->{motion.model().calibrate();Toast.makeText(this,"Mantenha o celular imóvel por 1 segundo.",Toast.LENGTH_LONG).show();return true;});
         menu.getMenu().add("Início").setOnMenuItemClickListener(item->{home();return true;});
         menu.show();
     }
@@ -150,8 +166,9 @@ public final class MainActivity extends Activity {
         LinearLayout content=new LinearLayout(this);content.setOrientation(LinearLayout.VERTICAL);scroll.addView(content);
         slider(content,"Zona morta","deadZone",prefs.deadZone(),0,30);slider(content,"Sensibilidade","sensitivity",prefs.sensitivity(),50,150);slider(content,"Vibração local","vibration",prefs.vibration(),0,100);
         LinearLayout row=new LinearLayout(this);content.addView(row);button(row,"Layout padrão",this::layouts);button(row,"Diagnóstico",this::diagnostics);
+        button(content,"Perfis, remapeamento e recursos avançados",()->startActivity(new Intent(this,AdvancedSettingsActivity.class)));
         button(row,"Compatibilidade",()->new AlertDialog.Builder(this).setTitle("Compatibilidade experimental")
-            .setMessage("Android 9+ com perfil HID Device habilitado pelo fabricante. PC: HID genérico; entradas confirmadas no painel Windows, compatibilidade com jogos e dongles ainda em teste. Switch: primeiro funcionamento confirmado pelo usuário após MissionControl 0.16.0; reconexão e demais aparelhos precisam de validação. MAC/VID/PID reais são controlados pelo Android. Não implementa NFC, giroscópio ou rumble do jogo. Pontos verdes indicam canal HID; valide os comandos no console.").setPositiveButton("Entendi",null).show());
+            .setMessage("Android 9+ com perfil HID Device habilitado pelo fabricante. PC: HID genérico; entradas confirmadas no painel Windows, compatibilidade com jogos e dongles ainda em teste. Switch: primeiro funcionamento confirmado pelo usuário após MissionControl 0.16.0; reconexão e demais aparelhos precisam de validação. MAC/VID/PID reais são controlados pelo Android. Giroscópio como mira usa o analógico direito. No PC por Wi-Fi, o auxiliar experimental oferece gatilhos graduais, retorno de vibração, touchpad e movimento DSU. O protocolo Nintendo atual não implementa movimento nativo ou rumble. NFC não implementado. Pontos verdes indicam canal HID; valide os comandos no console.").setPositiveButton("Entendi",null).show());
     }
     private void slider(LinearLayout parent,String label,String key,int value,int minimum,int maximum){
         TextView caption=text(String.format(java.util.Locale.getDefault(),"%s: %d%%",label,value),15);parent.addView(caption);
@@ -211,6 +228,7 @@ public final class MainActivity extends Activity {
         report.append("\nSinal KEY_MISSING observado: ").append(bond.keyMissingObserved()).append(" (ausência do sinal não descarta falha de chave)");
         report.append("\nConexão HID de saída: ").append(bond.outboundRequested()?(experiment.automaticRequested()?"solicitada pelo teste após vínculo estável":"solicitada pelo usuário"):"não solicitada; aguardando entrada do host");
         report.append("\n").append(session!=null?session.diagnostic():lastTransport);
+        report.append("\nSessão no serviço: ").append(foregroundService!=null&&foregroundService.session()==session&&session!=null).append(" • CPU mantida durante conexão: ").append(foregroundService!=null&&foregroundService.cpuHeld());
         try{
             if(adapter!=null&&permitted()){
                 report.append("\nBluetooth ligado: ").append(adapter.isEnabled());
@@ -236,6 +254,7 @@ public final class MainActivity extends Activity {
         pair(selectedHost,false);
     }
     private void pair(BluetoothDevice selectedHost,boolean newPairing){
+        if(com.switchphone.wifi.WifiForegroundService.running()){notice("Desconecte o Wi-Fi pela notificação antes de iniciar Bluetooth.");return;}
         if(screen.equals("layouts")&&previewLayout>=0)prefs.put("layout",previewLayout);
         stop();experiment=new LinkExperiment(prefs.nintendo()?prefs.switchTest():0);inputs.testing(false);control();
         attemptStarted=SystemClock.elapsedRealtime();diagnostics.clear();bond.reset();pairingHost=null;nameConfirmed=false;savedReconnect=false;requestedReconnectHost=selectedHost;freshPairing=newPairing;
@@ -312,7 +331,17 @@ public final class MainActivity extends Activity {
                 foregroundService.listen((reason,error)->{if(error)failPairing(reason);else stop();});
                 foregroundService.deadline(visibleUntil-SystemClock.elapsedRealtime());
                 if(preflightTimeout!=null)ui.removeCallbacks(preflightTimeout);
-                session=new HidSession(MainActivity.this,state,HidProfile.forAttempt(prefs.nintendo(),experiment.variant()),new HidSession.Listener(){
+                session=foregroundService.createSession(inputs,HidProfile.forAttempt(prefs.nintendo(),experiment.variant()),transportListener(attempt));
+                session.start();
+            }
+            @Override public void onServiceDisconnected(ComponentName name){if(binding==this&&flow.liveTransport())failPairing("Serviço de conexão interrompido. Toque Parear para tentar novamente.");}
+        };
+        serviceBound=bindService(intent,binding,BIND_AUTO_CREATE);
+        if(!serviceBound){failPairing("Android recusou o serviço de conexão Bluetooth.");return;}
+        armPreflight(8000,"O serviço de conexão não iniciou em 8 segundos.");
+    }
+    private HidSession.Listener transportListener(final int attempt){
+        return new HidSession.Listener(){
                     private boolean valid(){return flow.attempt()==attempt&&flow.liveTransport();}
                     @Override public void status(HidSession.Phase next,String text){
                         if(!valid())return;
@@ -330,24 +359,54 @@ public final class MainActivity extends Activity {
                             restoredBondExperiment();
                             flow.transport(PairingFlow.Step.ACTIVE);connectionStarted();
                             if(foregroundService!=null)foregroundService.connected();
-                            if(!resumed){
-                                if(backgroundExit!=null)ui.removeCallbacks(backgroundExit);
-                                backgroundExit=()->{if(flow.attempt()==attempt&&flow.step()==PairingFlow.Step.ACTIVE&&!resumed)stop();};
-                                ui.postDelayed(backgroundExit,5000);
-                            }
-                            if(inputs.testing()||!screen.equals("control")){inputs.testing(false);control();}
+                            if(inputs.testing()||!screen.equals("control")){inputs.testing(false);control();}else startMotion();
                         }
                         update(next,text);
                     }
                     @Override public void resetInput(){if(valid()&&controller!=null)controller.release();}
                     @Override public void notice(String text){if(valid())MainActivity.this.notice(text);}
-                });session.start();
+                };
+    }
+    private void detachTransportUi(){
+        release();
+        if(foregroundService!=null){foregroundService.observe(null);foregroundService.listen(null);}
+        if(serviceBound&&binding!=null)unbindService(binding);
+        serviceBound=false;serviceRequested=false;binding=null;foregroundService=null;session=null;
+    }
+    private void restoreExistingSession(){
+        if(binding!=null||session!=null)return;
+        serviceRequested=true;
+        binding=new ServiceConnection(){
+            @Override public void onServiceConnected(ComponentName name,IBinder binder){
+                if(binding!=this)return;
+                foregroundService=((HidForegroundService.LocalBinder)binder).service();
+                HidSession existing=foregroundService.session();
+                if(existing==null){detachTransportUi();home();return;}
+                PairingFlow.Step restored=switch(existing.phase()){
+                    case READY->PairingFlow.Step.WAIT_HOST;
+                    case CONNECTING->PairingFlow.Step.CONNECTING;
+                    case NEGOTIATING->PairingFlow.Step.NEGOTIATING;
+                    case ACTIVE->PairingFlow.Step.ACTIVE;
+                    default->PairingFlow.Step.REGISTER;
+                };
+                if(!flow.restoreTransport(restored)){detachTransportUi();return;}
+                session=existing;inputs=foregroundService.inputs();state=inputs.transport();
+                visibleUntil=foregroundService.deadlineAt();
+                nameConfirmed=foregroundService.profile().switchIdentity();
+                experiment=new LinkExperiment(prefs.nintendo()?prefs.switchTest():0);
+                foregroundService.observe(transportListener(flow.attempt()));
+                foregroundService.listen((reason,error)->{if(error)failPairing(reason);else stop();});
+                notice=foregroundService.lastNotice();
+                log("Tela retomada: sessão HID existente preservada, sem novo pareamento.");
+                control();update(existing.phase(),foregroundService.lastMessage());
+                if(restored==PairingFlow.Step.WAIT_HOST)waitForHost();
             }
-            @Override public void onServiceDisconnected(ComponentName name){if(binding==this&&flow.liveTransport())failPairing("Serviço de conexão interrompido. Toque Parear para tentar novamente.");}
+            @Override public void onServiceDisconnected(ComponentName name){
+                if(binding==this)failPairing("Serviço Bluetooth interrompido pelo Android.");
+            }
         };
-        serviceBound=bindService(intent,binding,BIND_AUTO_CREATE);
-        if(!serviceBound){failPairing("Android recusou o serviço de conexão Bluetooth.");return;}
-        armPreflight(8000,"O serviço de conexão não iniciou em 8 segundos.");
+        serviceBound=bindService(new Intent(this,HidForegroundService.class),binding,BIND_AUTO_CREATE);
+        if(!serviceBound){binding=null;serviceRequested=false;notice("Não foi possível retomar a tela da sessão Bluetooth.");}
     }
     private void connectionStarted(){if(hostTick!=null)ui.removeCallbacks(hostTick);if(foregroundService!=null)foregroundService.connectionStarted();}
     private void waitForHost(){
@@ -437,10 +496,11 @@ public final class MainActivity extends Activity {
     }
     private void clearTimers(){
         if(bondRecoveryTimeout!=null)ui.removeCallbacks(bondRecoveryTimeout);
-        if(preflightTimeout!=null)ui.removeCallbacks(preflightTimeout);if(identityPoll!=null)ui.removeCallbacks(identityPoll);if(hostTick!=null)ui.removeCallbacks(hostTick);if(backgroundExit!=null)ui.removeCallbacks(backgroundExit);
+        if(preflightTimeout!=null)ui.removeCallbacks(preflightTimeout);if(identityPoll!=null)ui.removeCallbacks(identityPoll);if(hostTick!=null)ui.removeCallbacks(hostTick);
     }
     private void teardown(){
-        release();HidSession old=session;session=null;if(old!=null){lastTransport=old.diagnostic();old.close();}
+        release();HidSession old=session;session=null;
+        if(old!=null){lastTransport=old.diagnostic();if(foregroundService!=null&&foregroundService.session()==old)foregroundService.closeSession();else old.close();}
         if(foregroundService!=null){foregroundService.listen(null);foregroundService=null;}
         if(serviceBound&&binding!=null){unbindService(binding);serviceBound=false;}binding=null;
         if(serviceRequested){stopService(new Intent(this,HidForegroundService.class));serviceRequested=false;}
@@ -449,15 +509,12 @@ public final class MainActivity extends Activity {
     private void failPairing(String error){experiment.finish();flow.fail();clearTimers();teardown();notice="Tentativa encerrada; L+R exige canal HID. Use Diagnóstico → Copiar ou Testar toque para conferir somente a tela.";update(HidSession.Phase.ERROR,error);}
     private void send(){if(session!=null)session.send();}
     private void release(){if(controller!=null)controller.release();inputs.clear();if(session!=null)session.release();}
-    private void stop(){experiment.finish();flow.cancel();clearTimers();teardown();update(HidSession.Phase.CLOSED,"Sessão encerrada; controles bloqueados fora do teste local.");}
-    @Override protected void onPostResume(){super.onPostResume();resumed=true;queueDrive();}
+    private void stop(){if(motion!=null)motion.stop();experiment.finish();flow.cancel();clearTimers();teardown();update(HidSession.Phase.CLOSED,"Sessão encerrada; controles bloqueados fora do teste local.");}
+    @Override protected void onPostResume(){super.onPostResume();resumed=true;queueDrive();if(controller!=null&&controller.layoutIndex()!=prefs.layout())control();else if(screen.equals("control"))startMotion();}
     @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused&&resumed)queueDrive();}
-    @Override protected void onPause(){resumed=false;release();super.onPause();}
+    @Override protected void onPause(){resumed=false;if(motion!=null)motion.stop();release();super.onPause();}
     @Override protected void onStop(){
-        // No HID exists during our system dialogs. A foreground session survives a remote bond dialog.
-        boolean keep=flow.awaitingExternal()||(flow.liveTransport()&&flow.step()!=PairingFlow.Step.ACTIVE&&(serviceRequested||session!=null));
-        // Leaving after a failure must not replace its diagnosis with a generic CLOSED status.
-        if(!keep&&(flow.busy()||flow.step()==PairingFlow.Step.ACTIVE||session!=null||serviceRequested))stop();
+        // onPause releases held touches. The started foreground service owns the connection.
         super.onStop();
     }
     private final BroadcastReceiver bluetoothEvents=new BroadcastReceiver(){
@@ -534,6 +591,11 @@ public final class MainActivity extends Activity {
         try{if(Build.VERSION.SDK_INT>=33)registerReceiver(bluetoothEvents,filter,permission,null,Context.RECEIVER_EXPORTED);else registerReceiver(bluetoothEvents,filter,permission,null);receiverRegistered=true;}
         catch(SecurityException e){log("Não foi possível observar eventos de pareamento Android.");}
     }
-    @Override protected void onDestroy(){stop();ui.removeCallbacksAndMessages(null);if(receiverRegistered)unregisterReceiver(bluetoothEvents);super.onDestroy();}
+    @Override protected void onDestroy(){
+        if(HidForegroundService.ownsTransport()&&serviceRequested)detachTransportUi();else stop();
+        ui.removeCallbacksAndMessages(null);
+        if(receiverRegistered)unregisterReceiver(bluetoothEvents);
+        super.onDestroy();
+    }
     @Override public void onBackPressed(){if(!screen.equals("home"))home();else super.onBackPressed();}
 }

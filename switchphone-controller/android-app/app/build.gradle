@@ -8,8 +8,8 @@ android {
         applicationId 'com.switchphone.controller'
         minSdk 28
         targetSdk 35
-        versionCode 10
-        versionName '0.2.8-experimental'
+        versionCode 11
+        versionName '0.3.0-experimental'
         manifestPlaceholders = [appLabel: 'Nördhub ProController']
     }
     buildTypes {
