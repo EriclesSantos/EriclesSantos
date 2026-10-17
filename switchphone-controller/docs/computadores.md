@@ -7,8 +7,8 @@ O auxiliar Nördhub recebe os comandos do Android e apresenta um controle **Xbox
 | Programa/requisito | Download ou informação oficial |
 |---|---|
 | Windows 10/11 **x64** | Windows ARM, 32 bits, Linux e macOS não têm auxiliar nesta versão. |
-| Nördhub ProController 0.3.0 no Android | [Baixar APK](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.0/nordhub-procontroller-0.3.0.apk). Android 9+. |
-| Auxiliar Nördhub Windows 0.3.0 | [Baixar ZIP](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.0/nordhub-procontroller-pc-0.3.0.zip). Extraia todo o conteúdo. |
+| Nördhub ProController 0.3.1 no Android | [Baixar APK](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-0.3.1.apk). Android 9+. |
+| Auxiliar Nördhub Windows 0.3.1 | [Baixar ZIP](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-pc-0.3.1.zip). Extraia todo o conteúdo. |
 | .NET Framework 4.8 | [Download Microsoft](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48). Se já estiver disponível no Windows, não precisa reinstalar. |
 | ViGEmBus x64 compatível | [Releases oficiais](https://github.com/nefarius/ViGEmBus/releases) e [instruções do autor](https://docs.nefarius.at/projects/ViGEm/How-to-Install/). |
 | Bluetooth **ou** rede local | Bluetooth exige rádio no PC e HID Device no Android. Wi-Fi exige PC e telefone na mesma rede. O PC pode estar por cabo Ethernet. |
@@ -17,12 +17,12 @@ O auxiliar Nördhub recebe os comandos do Android e apresenta um controle **Xbox
 
 ## Preparar o auxiliar
 
-1. Extraia o ZIP para uma pasta do PC. Mantenha `Nordhub.ProController.exe` e `ViGEmClient.dll` juntos.
+1. Extraia o ZIP para uma pasta do PC. Mantenha `Nordhub.ProController.exe`, `ViGEmClient.dll` e `zxing.dll` juntos.
 2. Confira os requisitos acima e abra `Nordhub.ProController.exe`.
 3. Escolha Bluetooth ou Wi-Fi. Iniciar um modo encerra o outro neste auxiliar.
 4. Inicie o controle antes de abrir o jogo. Ao trocar de dispositivo, alguns jogos precisam ser reabertos.
 
-Fechar a janela mantém o auxiliar na bandeja do Windows. **Encerrar/Desconectar** remove o Xbox virtual; **Sair** encerra o programa. Ele não inicia com o Windows nem se instala como serviço.
+Fechar a janela mantém o auxiliar na bandeja do Windows. **Desconectar** remove o Xbox virtual; **Sair** encerra o programa. Ele não inicia com o Windows nem se instala como serviço.
 
 ## Conectar por Bluetooth
 
@@ -30,22 +30,36 @@ Fechar a janela mantém o auxiliar na bandeja do Windows. **Encerrar/Desconectar
 2. Autorize Dispositivos próximos, Bluetooth e visibilidade quando o Android solicitar. Volte para a tela do app.
 3. Nas configurações Bluetooth do Windows, adicione o telefone e confirme o pareamento nos dois aparelhos.
 4. Aguarde a confirmação da conexão HID no app e mantenha a tela do controle aberta.
-5. No auxiliar, use **Atualizar lista**, selecione o gamepad Nördhub/SwitchPhone e clique em **Iniciar Bluetooth**. Se houver um único gamepad reconhecido pelo nome, ele pode ser iniciado automaticamente.
-6. Confira botões e analógicos na janela do auxiliar. Em `Win+R → joy.cpl`, o gamepad e o Xbox virtual podem aparecer com nomes distintos.
+5. No auxiliar, clique em **Bluetooth**. Se houver um único gamepad Nördhub/SwitchPhone, o auxiliar o seleciona. Se precisar escolher outro, abra **Avançado → Bluetooth**, selecione o gamepad do celular e clique em **Conectar**.
+6. Aguarde **Conectado • pronto para jogar**. Para detalhes de botões e analógicos, abra **Avançado → Diagnóstico**. Em `Win+R → joy.cpl`, o gamepad e o Xbox virtual podem aparecer com nomes distintos.
 
 O nome Bluetooth externo pode continuar sendo o nome do telefone. Os três desenhos do app enviam os mesmos comandos lógicos; escolha o desenho de sua preferência. Em uma sessão posterior, **Reconectar** reutiliza o vínculo salvo quando ele estiver disponível.
 
 ## Conectar por Wi-Fi / Wireless
 
-1. Coloque o Android e o PC na mesma rede local. Ethernet no PC e Wi-Fi no celular podem compartilhar o mesmo roteador. Internet não é necessária para essa comunicação.
-2. No auxiliar, clique em **Iniciar Wi-Fi local**. Ele mostra o IPv4, a porta **26761/UDP** e um código de cinco grupos.
-3. No app, escolha **PC → Wi-Fi / Wireless** e preencha IP, porta e código.
-4. Aguarde a confirmação autenticada do PC para liberar os controles.
-5. Confira a entrada no auxiliar e abra o jogo.
+1. Coloque o celular e o PC na mesma rede. O PC pode usar cabo Ethernet no mesmo roteador; a comunicação não precisa de internet.
+2. Abra o auxiliar e clique em **Wi-Fi / Wireless**. Um QR Code aparece na janela.
+3. No app Android, escolha **PC → Wi-Fi / Wireless → Ler QR Code do computador**.
+4. Autorize a câmera quando solicitado e aponte para o QR. A câmera fecha ao concluir ou sair dessa tela.
+5. Aguarde **Conectado • pronto para jogar** no PC e a confirmação no celular. Abra o jogo e use o controle Xbox virtual.
 
-Se houver vários IPs, escolha o da rede compartilhada com o telefone. Redes de convidados e isolamento entre clientes podem impedir a conexão. Se o Windows solicitar acesso de rede, avalie a permissão para o auxiliar na sua rede privada. Não é necessário abrir portas do roteador para a internet. O aplicativo não altera regras de firewall.
+Não é preciso digitar IP, porta ou código no fluxo por QR. O app tenta os endereços locais incluídos no QR e usa aquele que responder com autenticação válida. O auxiliar mostra o nome informado pelo telefone depois da conexão.
 
-Um novo início de sessão Wi-Fi gera outro código. O APK lembra IP/porta, mas não salva o código. **Copiar diagnóstico** não inclui o código; o botão **Copiar código** é separado.
+### Câmera e privacidade
+
+A leitura acontece no próprio celular com ZXing, sem servidor, envio ou gravação de imagens. A câmera é opcional e só é solicitada na tela de leitura. O QR contém os dados de pareamento da sessão; não compartilhe uma captura dele enquanto estiver em uso. O app não salva o código.
+
+### Avançado e conexão manual
+
+Se não quiser usar a câmera, abra **Avançado** no auxiliar para consultar IPv4, porta **26761/UDP** e código. No celular, abra **Avançado: conexão manual**, preencha esses dados e toque em **Conectar manualmente**. Se houver vários IPs, use o da rede compartilhada com o telefone.
+
+No auxiliar, **Avançado** reúne escolha manual do gamepad Bluetooth, touchpad como mouse, movimento DSU, dados de conexão e diagnóstico. **Gerar novo QR** encerra a sessão atual e gera um novo código. Desconectar e iniciar Wi-Fi novamente também renova o código. O APK lembra somente IP/porta da última conexão. **Copiar diagnóstico** omite o código; **Copiar código** é separado.
+
+Redes de convidados ou isolamento entre clientes podem impedir a conexão. Se o Windows solicitar acesso de rede, permita o auxiliar na rede privada que você está usando. Não é necessário abrir portas do roteador para a internet. O aplicativo não altera regras de firewall.
+
+Prévia da janela do auxiliar, renderizada com QR de demonstração sem sessão ativa:
+
+![Auxiliar Windows com conexão por QR Code](assets/auxiliar-wifi.png)
 
 ## Steam e jogos fora da Steam
 
@@ -61,11 +75,11 @@ O [guia de recursos](recursos.md) explica perfis, gatilhos, giroscópio, vibraç
 
 | Situação | Como resolver |
 |---|---|
-| Falta `ViGEmClient.dll` | Extraia o ZIP inteiro e execute o EXE de dentro da pasta extraída. |
+| Falta `ViGEmClient.dll` ou `zxing.dll` | Extraia o ZIP inteiro e execute o EXE de dentro da pasta extraída. |
 | Auxiliar informa driver ausente | Confira o ViGEmBus compatível nos programas necessários. |
 | Bluetooth não aparece como gamepad | Confirme destino PC, permissões e canal HID no app; atualize a lista do auxiliar. |
-| Wi-Fi não confirma | Confira mesmo segmento de rede, IPv4, porta, código atual e acesso do auxiliar na rede privada. |
-| Jogo vê o controle, mas não recebe comandos | Confira entradas no auxiliar, dispositivo/mapeamento escolhido no jogo e reabra o jogo após iniciar o Xbox virtual. |
+| Wi-Fi não confirma | Use a mesma rede, leia o QR atual e confira o acesso do auxiliar no firewall da rede privada. Para digitar dados, use Avançado. |
+| Jogo vê o controle, mas não recebe comandos | Confira entradas em Avançado → Diagnóstico, dispositivo/mapeamento escolhido no jogo e reabra o jogo após iniciar o Xbox virtual. |
 | Emulador mantém um controle antigo | Selecione o Xbox virtual no jogador correto e gere/refaça o mapeamento. |
 | Entradas duplicadas | Confira se o jogo está usando simultaneamente o HID do telefone e o Xbox virtual. O auxiliar precisa continuar conseguindo ler o telefone. |
 | Comandos parados após perder conexão | O auxiliar mantém o Xbox em neutro até o retorno da origem ou encerramento manual. |

@@ -3,93 +3,77 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Threading;
 using System.IO;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Collections.Generic;
 
 namespace Nordhub.ProController {
+ public sealed class QrDisplay:Control {
+  Image image;public Image Image{get{return image;}set{image=value;Invalidate();}}
+  public QrDisplay(){DoubleBuffered=true;}
+  protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);if(image!=null)e.Graphics.DrawImageUnscaled(image,(Width-image.Width)/2,(Height-image.Height)/2);}
+ }
  public sealed class MainForm:Form {
-  readonly ComboBox devices=new ComboBox();readonly Label status=new Label(),activity=new Label();readonly Button start=new Button(),stop=new Button();
-  readonly System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer(),retry=new System.Windows.Forms.Timer();Bridge bridge;WifiReceiver wifi;
-  readonly Button startWifi=new Button();readonly Label pairing=new Label(),addresses=new Label();readonly CheckBox mouse=new CheckBox(),motion=new CheckBox();long ticks;
-  readonly NotifyIcon tray=new NotifyIcon();bool exiting,autoConnect=true;long changes;XboxReport previous;
+  readonly Button bluetooth=new Button(),wireless=new Button(),disconnect=new Button();
+  readonly Label status=new Label(),subtitle=new Label(),instructions=new Label();readonly QrDisplay qr=new QrDisplay();
+  readonly Panel body=new Panel();readonly System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer(),retry=new System.Windows.Forms.Timer();
+  readonly NotifyIcon tray=new NotifyIcon();readonly List<Joystick.Device> devices=new List<Joystick.Device>();
+  Bridge bridge;WifiReceiver wifi;Joystick.Device selected;AdvancedForm advanced;bool exiting,autoConnect,allowMouse,allowMotion;int mode;long changes,ticks;XboxReport previous;string activity="",qrPayload="";
+  readonly Color accent=Color.FromArgb(168,140,255),muted=Color.FromArgb(173,182,198);
   public MainForm(bool startInTray){
-   Text="Nördhub ProController • PC";ClientSize=new Size(620,570);MinimumSize=new Size(636,609);StartPosition=FormStartPosition.CenterScreen;
-   BackColor=Color.FromArgb(9,10,18);ForeColor=Color.FromArgb(238,232,255);Font=new Font("Segoe UI",10);
+   Text="Nördhub ProController • 0.3.1";ClientSize=new Size(590,640);MinimumSize=new Size(530,610);StartPosition=FormStartPosition.CenterScreen;AutoScaleMode=AutoScaleMode.Dpi;
+   BackColor=Color.FromArgb(12,19,28);ForeColor=Color.FromArgb(238,232,255);Font=new Font("Segoe UI",10);
    try{Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath);}catch{}
-   Label title=new Label{Text="Nördhub ProController",Font=new Font("Segoe UI",21,FontStyle.Bold),ForeColor=Color.FromArgb(168,140,255),Location=new Point(22,20),Size=new Size(570,42)};Controls.Add(title);
-   Label intro=new Label{Text="Escolha Bluetooth ou Wi-Fi local → Xbox para jogos Steam e fora da Steam",Location=new Point(24,70),Size=new Size(570,45)};Controls.Add(intro);
-   devices.DropDownStyle=ComboBoxStyle.DropDownList;devices.Location=new Point(24,120);devices.Size=new Size(430,30);Controls.Add(devices);
-   Button scan=new Button{Text="Atualizar lista",Location=new Point(466,118),Size=new Size(130,32)};scan.Click+=(s,e)=>RefreshDevices();Controls.Add(scan);
-   start.Text="Iniciar Bluetooth";start.Location=new Point(24,169);start.Size=new Size(245,42);start.BackColor=Color.FromArgb(168,140,255);start.ForeColor=Color.FromArgb(9,10,18);start.FlatStyle=FlatStyle.Flat;start.Click+=(s,e)=>StartBridge();Controls.Add(start);
-   stop.Text="Encerrar";stop.Location=new Point(283,169);stop.Size=new Size(130,42);stop.Enabled=false;stop.Click+=(s,e)=>{autoConnect=false;StopBridge("Encerrado. O controle virtual foi removido.");};Controls.Add(stop);
-   Button copy=new Button{Text="Copiar diagnóstico",Location=new Point(425,169),Size=new Size(171,42)};copy.Click+=(s,e)=>Clipboard.SetText(Diagnostic());Controls.Add(copy);
-   status.Location=new Point(24,228);status.Size=new Size(570,48);status.ForeColor=Color.FromArgb(0,198,255);Controls.Add(status);
-   activity.Location=new Point(24,285);activity.Size=new Size(570,42);activity.ForeColor=Color.FromArgb(180,177,195);Controls.Add(activity);
-   Label wifiTitle=new Label{Text="Wi-Fi / Wireless • mesma rede do celular",Location=new Point(24,340),Size=new Size(570,28),ForeColor=Color.FromArgb(168,140,255)};Controls.Add(wifiTitle);
-   startWifi.Text="Iniciar Wi-Fi local";startWifi.Location=new Point(24,374);startWifi.Size=new Size(210,36);startWifi.Click+=(s,e)=>StartWifi();Controls.Add(startWifi);
-   Button copyCode=new Button{Text="Copiar código",Location=new Point(248,374),Size=new Size(160,36)};copyCode.Click+=(s,e)=>{if(wifi!=null)Clipboard.SetText(wifi.Code);};Controls.Add(copyCode);
-   addresses.Location=new Point(24,416);addresses.Size=new Size(570,40);addresses.Text="Inicie Wi-Fi para mostrar IP, porta e código de pareamento.";Controls.Add(addresses);
-   pairing.Location=new Point(24,460);pairing.Size=new Size(570,30);pairing.Font=new Font("Consolas",15,FontStyle.Bold);pairing.ForeColor=Color.FromArgb(168,140,255);Controls.Add(pairing);
-   mouse.Text="Permitir touchpad como mouse";mouse.Location=new Point(24,500);mouse.Size=new Size(300,28);Controls.Add(mouse);mouse.CheckedChanged+=(s,e)=>{try{if(wifi!=null)wifi.AllowMouse=mouse.Checked;}catch(Exception ex){StopBridge(ex.Message);}};
-   motion.Text="Movimento DSU (emulador)";motion.Location=new Point(328,500);motion.Size=new Size(275,28);Controls.Add(motion);motion.CheckedChanged+=(s,e)=>{if(wifi!=null)wifi.EnableMotion(motion.Checked);};
-   Controls.Add(new Label{Text="Escolher uma conexão encerra a outra. Sem servidor na internet.",Location=new Point(24,535),Size=new Size(570,28)});
-   tray.Icon=Icon??SystemIcons.Application;tray.Text="Nördhub ProController";tray.Visible=true;
-   ContextMenuStrip menu=new ContextMenuStrip();menu.Items.Add("Abrir",null,(s,e)=>{Show();WindowState=FormWindowState.Normal;Activate();});menu.Items.Add("Desconectar",null,(s,e)=>{autoConnect=false;StopBridge("Encerrado manualmente.");});menu.Items.Add("Sair",null,(s,e)=>{exiting=true;Close();});tray.ContextMenuStrip=menu;tray.DoubleClick+=(s,e)=>{Show();WindowState=FormWindowState.Normal;Activate();};
-   timer.Interval=16;timer.Tick+=(s,e)=>TickBridge();
-   retry.Interval=2000;retry.Tick+=(s,e)=>{if(bridge==null&&wifi==null&&autoConnect){RefreshDevices();StartKnownDevice();}};retry.Start();
-   FormClosing+=(s,e)=>{if(!exiting&&e.CloseReason==CloseReason.UserClosing){e.Cancel=true;Hide();return;}retry.Stop();StopBridge(null);tray.Dispose();};
-   Shown+=(s,e)=>{StartKnownDevice();if(startInTray)Hide();};RefreshDevices();
+   TableLayoutPanel root=new TableLayoutPanel{Dock=DockStyle.Fill,Padding=new Padding(22,16,22,12),ColumnCount=1,RowCount=5};
+   root.RowStyles.Add(new RowStyle(SizeType.Absolute,78));root.RowStyles.Add(new RowStyle(SizeType.Absolute,48));root.RowStyles.Add(new RowStyle(SizeType.Percent,100));root.RowStyles.Add(new RowStyle(SizeType.Absolute,70));root.RowStyles.Add(new RowStyle(SizeType.Absolute,48));Controls.Add(root);
+   Panel header=new Panel{Dock=DockStyle.Fill};header.Controls.Add(new Label{Text="Nördhub ProController",Font=new Font("Segoe UI",23,FontStyle.Bold),ForeColor=accent,Dock=DockStyle.Top,Height=44});header.Controls.Add(new Label{Text="Conecte o celular e jogue.",ForeColor=muted,Location=new Point(3,47),AutoSize=true});root.Controls.Add(header,0,0);
+   TableLayoutPanel modes=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1};modes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));modes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));Style(bluetooth,"Bluetooth");Style(wireless,"Wi-Fi / Wireless");modes.Controls.Add(bluetooth,0,0);modes.Controls.Add(wireless,1,0);root.Controls.Add(modes,0,1);bluetooth.Click+=(s,e)=>StartBluetooth();wireless.Click+=(s,e)=>StartWifi();
+   body.Dock=DockStyle.Fill;body.Padding=new Padding(4,10,4,4);root.Controls.Add(body,0,2);
+   qr.Dock=DockStyle.Fill;qr.BackColor=BackColor;qr.Visible=false;body.Controls.Add(qr);
+   instructions.Dock=DockStyle.Bottom;instructions.Height=67;instructions.TextAlign=ContentAlignment.MiddleCenter;instructions.ForeColor=muted;body.Controls.Add(instructions);
+   Panel state=new Panel{Dock=DockStyle.Fill};status.Dock=DockStyle.Top;status.Height=32;status.Font=new Font("Segoe UI",14,FontStyle.Bold);status.TextAlign=ContentAlignment.MiddleCenter;state.Controls.Add(status);subtitle.Dock=DockStyle.Bottom;subtitle.Height=30;subtitle.TextAlign=ContentAlignment.MiddleCenter;subtitle.ForeColor=muted;state.Controls.Add(subtitle);root.Controls.Add(state,0,3);
+   TableLayoutPanel actions=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2};actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));Style(disconnect,"Desconectar");disconnect.Enabled=false;disconnect.Click+=(s,e)=>{autoConnect=false;Stop("Desconectado");};actions.Controls.Add(disconnect);Button settings=new Button();Style(settings,"Avançado");settings.Click+=(s,e)=>ShowAdvanced();actions.Controls.Add(settings);root.Controls.Add(actions,0,4);
+   qr.Resize+=(s,e)=>RenderQr();ShowChoice();
+   tray.Icon=Icon??SystemIcons.Application;tray.Text="Nördhub ProController";tray.Visible=true;ContextMenuStrip menu=new ContextMenuStrip();menu.Items.Add("Abrir",null,(s,e)=>Open());menu.Items.Add("Desconectar",null,(s,e)=>{autoConnect=false;Stop("Desconectado");});menu.Items.Add("Sair",null,(s,e)=>{exiting=true;Close();});tray.ContextMenuStrip=menu;tray.DoubleClick+=(s,e)=>Open();
+   timer.Interval=16;timer.Tick+=(s,e)=>Tick();retry.Interval=2000;retry.Tick+=(s,e)=>{if(mode==1&&autoConnect&&bridge==null){try{RefreshDevices();ConnectSelected(true);}catch(Exception ex){Error(ex);}}};retry.Start();
+   FormClosing+=(s,e)=>{if(!exiting&&e.CloseReason==CloseReason.UserClosing){e.Cancel=true;Hide();return;}retry.Stop();autoConnect=false;Stop(null);tray.Dispose();if(qr.Image!=null)qr.Image.Dispose();};
+   Shown+=(s,e)=>{if(startInTray)Hide();};
   }
-  void StartKnownDevice(){int count=0;foreach(object item in devices.Items){string name=item.ToString();if(name.IndexOf("SwitchPhone",StringComparison.OrdinalIgnoreCase)>=0||name.IndexOf("rdhub",StringComparison.OrdinalIgnoreCase)>=0)count++;}if(count==1)StartBridge();}
-  void RefreshDevices(){
-   if(bridge!=null||wifi!=null)return;devices.Items.Clear();
-   try{foreach(Joystick.Device device in Joystick.List())devices.Items.Add(device);
-    for(int i=0;i<devices.Items.Count;i++){string name=devices.Items[i].ToString();if(name.IndexOf("SwitchPhone",StringComparison.OrdinalIgnoreCase)>=0||name.IndexOf("rdhub",StringComparison.OrdinalIgnoreCase)>=0){devices.SelectedIndex=i;break;}}
-    if(devices.SelectedIndex<0&&devices.Items.Count==1)devices.SelectedIndex=0;
-    status.Text=devices.Items.Count==0?"Conecte o app no modo PC e clique em Atualizar lista.":"Selecione o gamepad do celular e inicie antes de abrir o jogo.";
-    activity.Text="Requer Windows x64, .NET Framework 4.8 e driver ViGEmBus compatível já instalado.";
-   }catch(Exception ex){status.Text=ex.Message;}
-  }
-  void StartBridge(){
-   if(bridge!=null)return;if(devices.SelectedItem==null){status.Text="Escolha o gamepad Bluetooth do celular.";return;}
-   try{StopBridge(null);bridge=new Bridge((Joystick.Device)devices.SelectedItem);bridge.Tick();changes=0;previous=bridge.Last;autoConnect=true;start.Enabled=false;startWifi.Enabled=true;devices.Enabled=false;stop.Enabled=true;timer.Start();status.Text="Controle Xbox ativo • jogador "+(bridge.XboxIndex+1)+". Abra o jogo e teste os comandos.";}
-   catch(Exception ex){autoConnect=false;StopBridge(ex.Message);}
-  }
-  static string LocalAddresses(){List<string> values=new List<string>();foreach(NetworkInterface net in NetworkInterface.GetAllNetworkInterfaces())if(net.OperationalStatus==OperationalStatus.Up)foreach(UnicastIPAddressInformation item in net.GetIPProperties().UnicastAddresses)if(item.Address.AddressFamily==AddressFamily.InterNetwork&&WifiReceiver.Local(item.Address)&&!IPAddress.IsLoopback(item.Address))values.Add(item.Address.ToString());return values.Count==0?"Nenhum IPv4 local ativo; conecte o PC à rede.":"IPv4 do PC: "+string.Join(" / ",values.ToArray())+" • porta UDP 26761";}
-  void StartWifi(){if(wifi!=null)return;autoConnect=false;StopBridge(null);try{wifi=new WifiReceiver(26761);wifi.AllowMouse=mouse.Checked;wifi.EnableMotion(motion.Checked);addresses.Text=LocalAddresses();pairing.Text=wifi.Code;changes=ticks=0;previous=new XboxReport();startWifi.Enabled=false;stop.Enabled=true;timer.Start();status.Text="Wi-Fi aguardando celular. No app: PC → Wi-Fi / Wireless.";}catch(Exception ex){StopBridge(ex.Message);}}
-  void TickWifi(){try{wifi.Tick();XboxReport r=wifi.Last;if(!previous.Equals(r)){changes++;previous=r;}if(++ticks%15==0){VirtualXbox.XboxState output;uint code=VirtualXbox.XInputGetState(wifi.XboxIndex,out output);status.Text="Wi-Fi • "+(wifi.Connected?"celular autenticado":"aguardando celular, Xbox neutro")+" • jogador "+(wifi.XboxIndex+1);status.ForeColor=wifi.Connected?Color.FromArgb(0,198,255):Color.FromArgb(255,205,110);tray.Text=wifi.Connected?"Nördhub • Xbox ativo":"Nördhub • aguardando celular, Xbox neutro";activity.Text="Entrada: "+r.Buttons.ToString("X4")+" • sticks "+r.LeftX+", "+r.LeftY+" / "+r.RightX+", "+r.RightY+" • LT/RT "+r.LeftTrigger+"/"+r.RightTrigger+Environment.NewLine+"XInput: "+(code==0?output.Gamepad.Buttons.ToString("X4"):"indisponível ("+code+")")+" • "+wifi.MotionStatus;if(ticks%120==0)SaveDiagnostic();}}catch(Exception ex){StopBridge(ex.Message);}}
-  string Diagnostic(){return status.Text+Environment.NewLine+activity.Text+Environment.NewLine+"Relatórios: "+(wifi!=null?wifi.Reports:bridge!=null?bridge.Reports:0)+" • mudanças: "+changes+Environment.NewLine+"Código de pareamento não incluído.";}
-  void TickBridge(){
-   if(wifi!=null){TickWifi();return;}if(bridge==null)return;
-   try{
-    bridge.Tick();if(!previous.Equals(bridge.Last)){changes++;previous=bridge.Last;}
-    if(bridge.Reports%20==0){
-     XboxReport r=bridge.Last;VirtualXbox.XboxState output;uint code=VirtualXbox.XInputGetState(bridge.XboxIndex,out output);
-     status.Text="Xbox ativo • jogador "+(bridge.XboxIndex+1)+". "+bridge.SourceStatus;
-     status.ForeColor=bridge.SourceAvailable?Color.FromArgb(0,198,255):Color.FromArgb(255,205,110);
-     tray.Text=bridge.SourceAvailable?"Nördhub • Xbox ativo":"Nördhub • aguardando celular, Xbox neutro";
-     activity.Text="Entrada celular: "+r.Buttons.ToString("X4")+" • sticks "+r.LeftX+", "+r.LeftY+" / "+r.RightX+", "+r.RightY+Environment.NewLine+"Saída XInput: "+(code==0?output.Gamepad.Buttons.ToString("X4")+" • sticks "+output.Gamepad.LeftX+", "+output.Gamepad.LeftY+" / "+output.Gamepad.RightX+", "+output.Gamepad.RightY:"indisponível ("+code+")");
-     if(bridge.Reports%120==0)SaveDiagnostic();
-    }
+  void Style(Button button,string text){button.Text=text;button.Dock=DockStyle.Fill;button.FlatStyle=FlatStyle.Flat;button.FlatAppearance.BorderColor=Color.FromArgb(69,78,97);button.Margin=new Padding(4);button.Height=40;button.ForeColor=ForeColor;button.BackColor=Color.FromArgb(24,34,49);}
+  void Open(){Show();WindowState=FormWindowState.Normal;Activate();}
+  void SelectMode(){bluetooth.BackColor=mode==1?Color.FromArgb(85,66,130):Color.FromArgb(24,34,49);wireless.BackColor=mode==2?Color.FromArgb(85,66,130):Color.FromArgb(24,34,49);}
+  void ShowChoice(){mode=0;SelectMode();qr.Visible=false;instructions.Text="Escolha Bluetooth ou Wi-Fi acima.\nNo Wi-Fi, basta ler o QR pelo app no celular.";status.Text="Como deseja conectar?";status.ForeColor=accent;subtitle.Text="Celular e computador na mesma rede para Wi-Fi.";}
+  void ClearQr(){qrPayload="";qr.Visible=false;Image old=qr.Image;qr.Image=null;if(old!=null)old.Dispose();}
+  void RenderQr(){if(string.IsNullOrEmpty(qrPayload)||qr.Width<180||qr.Height<180)return;int size=Math.Min(300,Math.Min(qr.Width,qr.Height)-8);if(size<180)return;Image image=QrPairing.Image(qrPayload,size);Image old=qr.Image;qr.Image=image;if(old!=null)old.Dispose();}
+  void UpdateQr(){if(wifi==null)return;List<string> addresses=QrPairing.LocalAddresses();if(addresses.Count==0){qr.Visible=false;status.Text="Conecte o PC à rede";subtitle.Text="Use a mesma rede do celular e escolha Wi-Fi novamente.";return;}string value=QrPairing.Payload(addresses,26761,wifi.Code);if(value!=qrPayload){qrPayload=value;RenderQr();}}
+  static string Friendly(Exception ex){SocketException socket=ex as SocketException;if(socket!=null&&socket.SocketErrorCode==SocketError.AddressAlreadyInUse)return "A conexão já está em uso. Use Sair no auxiliar antigo e abra este novamente.";if(ex is FileNotFoundException||ex is DllNotFoundException)return "Faltam arquivos do auxiliar. Extraia todo o ZIP novamente para uma pasta.";if(ex.Message.IndexOf("Driver ViGEmBus",StringComparison.OrdinalIgnoreCase)>=0)return "Falta o componente do controle virtual. Abra Avançado → Ajuda de instalação.";return "Não foi possível iniciar a conexão. Abra Avançado para ver o diagnóstico.";}
+  void Error(Exception ex){string details=ex.Message;autoConnect=false;Stop("Não foi possível conectar");instructions.Text=Friendly(ex);subtitle.Text="Consulte Avançado para ajuda e diagnóstico.";activity=details;SaveDiagnostic();}
+  void StartWifi(){if(wifi!=null){UpdateQr();return;}autoConnect=false;Stop(null);mode=2;SelectMode();try{if(QrPairing.LocalAddresses().Count==0){status.Text="Conecte o PC à rede";subtitle.Text="Celular e PC precisam estar na mesma rede.";instructions.Text="Conecte o PC ao Wi-Fi ou ao cabo de rede e toque em Wi-Fi novamente.";return;}wifi=new WifiReceiver(26761);wifi.AllowMouse=allowMouse;wifi.EnableMotion(allowMotion);UpdateQr();qr.Visible=true;instructions.Text="No celular: PC → Wi-Fi → Ler QR Code.\nAponte a câmera para este QR.";status.Text="Leia o QR no celular";status.ForeColor=accent;subtitle.Text="A conexão é local e não precisa de internet.";disconnect.Enabled=true;changes=ticks=0;previous=new XboxReport();timer.Start();}catch(Exception ex){Error(ex);}}
+  void RefreshDevices(){if(bridge!=null)return;devices.Clear();foreach(Joystick.Device device in Joystick.List())devices.Add(device);if(selected!=null){Joystick.Device replacement=devices.Find(d=>d.Name==selected.Name&&d.Id==selected.Id);selected=replacement;}if(selected==null){List<Joystick.Device> known=devices.FindAll(d=>d.Name.IndexOf("SwitchPhone",StringComparison.OrdinalIgnoreCase)>=0||d.Name.IndexOf("rdhub",StringComparison.OrdinalIgnoreCase)>=0);if(known.Count==1)selected=known[0];}}
+  void StartBluetooth(){if(bridge!=null)return;Stop(null);mode=1;SelectMode();autoConnect=true;instructions.Text="No celular, escolha PC → Bluetooth e faça o pareamento no Windows.\nSe houver mais de um controle, selecione o celular em Avançado.";status.Text="Aguardando o celular";status.ForeColor=accent;subtitle.Text="O gamepad do celular será conectado quando estiver disponível.";try{RefreshDevices();ConnectSelected(true);}catch(Exception ex){Error(ex);}}
+  void ConnectSelected(bool automatic){if(bridge!=null||selected==null)return;try{bridge=new Bridge(selected);bridge.Tick();changes=ticks=0;previous=bridge.Last;disconnect.Enabled=true;autoConnect=true;timer.Start();}catch(Exception ex){Error(ex);}}
+  void Tick(){if(bridge==null&&wifi==null)return;try{XboxReport report;uint index;bool ready;long reports;if(wifi!=null){wifi.Tick();report=wifi.Last;index=wifi.XboxIndex;ready=wifi.Connected;reports=wifi.Reports;}else{bridge.Tick();report=bridge.Last;index=bridge.XboxIndex;ready=bridge.SourceAvailable;reports=bridge.Reports;}if(!previous.Equals(report)){changes++;previous=report;}if(++ticks%15==0){status.Text=ready?"Conectado • pronto para jogar":wifi!=null?"Leia o QR no celular":"Aguardando o celular";status.ForeColor=ready?Color.FromArgb(90,226,160):accent;subtitle.Text=ready?(wifi!=null?wifi.DeviceName:selected!=null?selected.Name:"Celular")+" • controle Xbox disponível para o jogo.":"Os comandos ficam liberados enquanto o celular está conectado.";qr.Visible=wifi!=null&&!ready;if(wifi!=null&&ticks%300==0)UpdateQr();instructions.Text=wifi!=null?(ready?"Abra o jogo e selecione o controle Xbox virtual.\nDeixe o auxiliar aberto ou na bandeja.":"No celular: PC → Wi-Fi → Ler QR Code.\nAponte a câmera para este QR."):(ready?"Abra o jogo e selecione o controle Xbox virtual.":"No celular, escolha PC → Bluetooth e conclua o pareamento.");VirtualXbox.XboxState output;uint code=VirtualXbox.XInputGetState(index,out output);activity="Entrada: "+report.Buttons.ToString("X4")+" • sticks "+report.LeftX+", "+report.LeftY+" / "+report.RightX+", "+report.RightY+" • LT/RT "+report.LeftTrigger+"/"+report.RightTrigger+Environment.NewLine+"XInput: "+(code==0?output.Gamepad.Buttons.ToString("X4"):"indisponível ("+code+")")+" • jogador "+(index+1)+" • relatórios "+reports+(wifi==null?"":" • "+wifi.MotionStatus);tray.Text=ready?"Nördhub • celular conectado":"Nördhub • aguardando celular";if(advanced!=null&&!advanced.IsDisposed)advanced.UpdateDiagnostic();if(ticks%120==0)SaveDiagnostic();}}catch(Exception ex){Error(ex);}}
+  string Diagnostic(){return "Nördhub ProController PC 0.3.1"+Environment.NewLine+status.Text+Environment.NewLine+activity+Environment.NewLine+"Relatórios: "+(wifi!=null?wifi.Reports:bridge!=null?bridge.Reports:0)+" • mudanças: "+changes+Environment.NewLine+"Código e conteúdo do QR não incluídos.";}
+  string ManualInfo(){return wifi==null?"Inicie Wi-Fi na tela principal para obter os dados manuais.":"IPv4: "+string.Join(" / ",QrPairing.LocalAddresses().ToArray())+Environment.NewLine+"Porta: 26761"+Environment.NewLine+"Código: "+wifi.Code;}
+  void SaveDiagnostic(){try{string target=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"bridge-status.txt"),temporary=target+".tmp";File.WriteAllText(temporary,Diagnostic());if(File.Exists(target))File.Replace(temporary,target,null);else File.Move(temporary,target);}catch(IOException){}catch(UnauthorizedAccessException){}}
+  void Stop(string message){timer.Stop();Bridge old=bridge;WifiReceiver oldWifi=wifi;bridge=null;wifi=null;try{if(old!=null)old.Dispose();}catch(Exception ex){activity=ex.Message;}try{if(oldWifi!=null)oldWifi.Dispose();}catch(Exception ex){activity=ex.Message;}ClearQr();disconnect.Enabled=false;ShowChoice();if(message!=null)status.Text=message;SaveDiagnostic();}
+  void ShowAdvanced(){if(advanced!=null&&!advanced.IsDisposed){advanced.Activate();return;}advanced=new AdvancedForm(this);advanced.ShowDialog(this);advanced=null;}
+  sealed class AdvancedForm:Form {
+   readonly MainForm owner;readonly TextBox diagnostic=new TextBox(),manual=new TextBox();readonly ComboBox sources=new ComboBox();
+   public AdvancedForm(MainForm owner){this.owner=owner;Text="Avançado • Nördhub";ClientSize=new Size(610,540);MinimumSize=new Size(580,540);StartPosition=FormStartPosition.CenterParent;BackColor=owner.BackColor;ForeColor=owner.ForeColor;Font=owner.Font;
+    FlowLayoutPanel root=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,WrapContents=false,AutoScroll=true,Padding=new Padding(14)};Controls.Add(root);
+    root.Controls.Add(new Label{Text="Bluetooth: escolher gamepad do celular",AutoSize=true});FlowLayoutPanel selection=new FlowLayoutPanel{Width=570,Height=38};sources.DropDownStyle=ComboBoxStyle.DropDownList;sources.Width=330;selection.Controls.Add(sources);Button refresh=new Button{Text="Atualizar",Width=100};refresh.Click+=(s,e)=>LoadSources();selection.Controls.Add(refresh);Button connect=new Button{Text="Conectar",Width=100};connect.Click+=(s,e)=>{if(sources.SelectedItem==null)return;owner.autoConnect=false;owner.Stop(null);owner.mode=1;owner.SelectMode();owner.selected=(Joystick.Device)sources.SelectedItem;owner.ConnectSelected(false);UpdateDiagnostic();};selection.Controls.Add(connect);root.Controls.Add(selection);LoadSources();
+    CheckBox mouse=new CheckBox{Text="Permitir touchpad como mouse",Checked=owner.allowMouse,AutoSize=true};mouse.CheckedChanged+=(s,e)=>{try{owner.allowMouse=mouse.Checked;if(owner.wifi!=null)owner.wifi.AllowMouse=mouse.Checked;}catch(Exception ex){owner.Error(ex);}UpdateDiagnostic();};root.Controls.Add(mouse);
+    CheckBox motion=new CheckBox{Text="Movimento para emuladores (DSU)",Checked=owner.allowMotion,AutoSize=true};motion.CheckedChanged+=(s,e)=>{owner.allowMotion=motion.Checked;if(owner.wifi!=null)owner.wifi.EnableMotion(motion.Checked);UpdateDiagnostic();};root.Controls.Add(motion);
+    root.Controls.Add(new Label{Text="Conexão manual Wi-Fi",AutoSize=true});manual.Multiline=true;manual.ReadOnly=true;manual.Width=565;manual.Height=80;manual.BackColor=Color.FromArgb(24,34,49);manual.ForeColor=ForeColor;root.Controls.Add(manual);
+    FlowLayoutPanel manualActions=new FlowLayoutPanel{Width=570,Height=36};Button copyCode=new Button{Text="Copiar código",Width=145};copyCode.Click+=(s,e)=>{if(owner.wifi!=null)Clipboard.SetText(owner.wifi.Code);};manualActions.Controls.Add(copyCode);Button renew=new Button{Text="Gerar novo QR",Width=145};renew.Click+=(s,e)=>{owner.autoConnect=false;owner.Stop(null);owner.StartWifi();UpdateDiagnostic();};manualActions.Controls.Add(renew);root.Controls.Add(manualActions);
+    root.Controls.Add(new Label{Text="Diagnóstico",AutoSize=true});diagnostic.Multiline=true;diagnostic.ReadOnly=true;diagnostic.ScrollBars=ScrollBars.Vertical;diagnostic.Width=565;diagnostic.Height=105;diagnostic.BackColor=Color.FromArgb(24,34,49);diagnostic.ForeColor=ForeColor;root.Controls.Add(diagnostic);
+    FlowLayoutPanel actions=new FlowLayoutPanel{Width=570,Height=38};Button copy=new Button{Text="Copiar diagnóstico",Width=160};copy.Click+=(s,e)=>Clipboard.SetText(owner.Diagnostic());actions.Controls.Add(copy);Button help=new Button{Text="Ajuda de instalação",Width=160};help.Click+=(s,e)=>System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/EriclesSantos/EriclesSantos/blob/main/switchphone-controller/docs/computadores.md"){UseShellExecute=true});actions.Controls.Add(help);Button close=new Button{Text="Voltar",Width=100};close.Click+=(s,e)=>Close();actions.Controls.Add(close);root.Controls.Add(actions);UpdateDiagnostic();
    }
-   catch(Exception ex){StopBridge(ex.Message);}
+   void LoadSources(){try{owner.RefreshDevices();sources.Items.Clear();foreach(Joystick.Device device in owner.devices)sources.Items.Add(device);if(owner.selected!=null)sources.SelectedItem=owner.selected;else if(sources.Items.Count==1)sources.SelectedIndex=0;}catch(Exception ex){diagnostic.Text=ex.Message;}}
+   public void UpdateDiagnostic(){diagnostic.Text=owner.Diagnostic();manual.Text=owner.ManualInfo();}
   }
-  void SaveDiagnostic(){
-   try{
-    string target=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"bridge-status.txt"),temporary=target+".tmp";
-    File.WriteAllText(temporary,DateTime.Now.ToString("s")+Environment.NewLine+Diagnostic());
-    if(File.Exists(target))File.Replace(temporary,target,null);else File.Move(temporary,target);
-   }
-   catch(IOException){}catch(UnauthorizedAccessException){}
-  }
-  void StopBridge(string message){timer.Stop();Bridge old=bridge;WifiReceiver oldWifi=wifi;bridge=null;wifi=null;string cleanupError=null;try{if(old!=null)old.Dispose();}catch(Exception ex){cleanupError=ex.Message;}try{if(oldWifi!=null)oldWifi.Dispose();}catch(Exception ex){cleanupError=ex.Message;}if(cleanupError!=null)message=(message==null?"":message+" ")+cleanupError;pairing.Text="";startWifi.Enabled=true;start.Enabled=true;devices.Enabled=true;stop.Enabled=false;tray.Text="Nördhub • Xbox encerrado";if(message!=null)status.Text=message;activity.Text="Nenhum controle Xbox virtual ativo neste auxiliar.";SaveDiagnostic();}
  }
  static class Program {
-  [STAThread] static void Main(string[] args){
-   bool created;using(Mutex single=new Mutex(true,"Local\\NordhubProControllerPc",out created)){if(!created)return;
-   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.Run(new MainForm(Array.IndexOf(args,"--tray")>=0));}
-  }
+  [STAThread] static void Main(string[] args){bool created;using(Mutex single=new Mutex(true,@"Local\NordhubProControllerPc",out created)){if(!created)return;Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.Run(new MainForm(Array.IndexOf(args,"--tray")>=0));}}
  }
 }

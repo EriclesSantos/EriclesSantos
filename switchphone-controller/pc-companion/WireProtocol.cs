@@ -16,7 +16,7 @@ namespace Nordhub.ProController {
   static byte[] Mac(byte[] key,byte[] data){using(HMACSHA256 h=new HMACSHA256(key))return h.ComputeHash(data);}
   public byte[] Encode(byte type,byte[] session,ulong sequence,byte[] payload){byte[] iv=new byte[16];using(RandomNumberGenerator random=RandomNumberGenerator.Create())random.GetBytes(iv);return Encode(type,session,sequence,payload,iv);}
   public byte[] Encode(byte type,byte[] session,ulong sequence,byte[] payload,byte[] iv){
-   if(type<1||type>3||session.Length!=16||sequence<1||sequence>long.MaxValue||payload.Length>128||iv.Length!=16)throw new ArgumentException("Packet fields");
+   if(type<1||type>4||session.Length!=16||sequence<1||sequence>long.MaxValue||payload.Length>128||iv.Length!=16)throw new ArgumentException("Packet fields");
    byte[] ciphertext;using(Aes aes=Aes.Create()){aes.Key=encryption;aes.IV=iv;aes.Mode=CipherMode.CBC;aes.Padding=PaddingMode.PKCS7;using(ICryptoTransform encrypt=aes.CreateEncryptor())ciphertext=encrypt.TransformFinalBlock(payload,0,payload.Length);}
    byte[] body;using(MemoryStream stream=new MemoryStream())using(BinaryWriter writer=new BinaryWriter(stream)){writer.Write(new byte[]{78,72,87,49,1,type,0,0});writer.Write(sequence);writer.Write(session);writer.Write(iv);writer.Write(ciphertext);body=stream.ToArray();}
    byte[] result=new byte[body.Length+32];Buffer.BlockCopy(body,0,result,0,body.Length);Buffer.BlockCopy(Mac(authentication,body),0,result,body.Length,32);return result;
@@ -24,7 +24,7 @@ namespace Nordhub.ProController {
   public Decoded Decode(byte[] packet){
    if(packet==null||packet.Length<96||packet.Length>224||(packet.Length-80)%16!=0)return null;
    try{byte[] body=new byte[packet.Length-32];Buffer.BlockCopy(packet,0,body,0,body.Length);byte[] expected=Mac(authentication,body);int difference=0;for(int i=0;i<32;i++)difference|=expected[i]^packet[body.Length+i];if(difference!=0)return null;
-    using(BinaryReader reader=new BinaryReader(new MemoryStream(body))){if(reader.ReadUInt32()!=0x3157484e||reader.ReadByte()!=1)return null;byte type=reader.ReadByte();if(type<1||type>3||reader.ReadUInt16()!=0)return null;ulong seq=reader.ReadUInt64();if(seq<1||seq>long.MaxValue)return null;byte[] session=reader.ReadBytes(16),iv=reader.ReadBytes(16),ciphertext=reader.ReadBytes(body.Length-48),payload;
+    using(BinaryReader reader=new BinaryReader(new MemoryStream(body))){if(reader.ReadUInt32()!=0x3157484e||reader.ReadByte()!=1)return null;byte type=reader.ReadByte();if(type<1||type>4||reader.ReadUInt16()!=0)return null;ulong seq=reader.ReadUInt64();if(seq<1||seq>long.MaxValue)return null;byte[] session=reader.ReadBytes(16),iv=reader.ReadBytes(16),ciphertext=reader.ReadBytes(body.Length-48),payload;
      using(Aes aes=Aes.Create()){aes.Key=encryption;aes.IV=iv;aes.Mode=CipherMode.CBC;aes.Padding=PaddingMode.PKCS7;using(ICryptoTransform decrypt=aes.CreateDecryptor())payload=decrypt.TransformFinalBlock(ciphertext,0,ciphertext.Length);}
      return new Decoded{Type=type,Session=session,Sequence=seq,Payload=payload};
     }
@@ -55,6 +55,7 @@ namespace Nordhub.ProController {
   public ControlFrame Frame {get;private set;}
   public byte[] Session{get{return session==null?null:(byte[])session.Clone();}}
   public bool Connected(long now){return assigned&&now>=last&&now-last<=250;}
+  public bool OwnsSession(WirePacket.Decoded p,string peer,long now){return p!=null&&Connected(now)&&endpoint==peer&&WirePacket.Equal(session,p.Session)&&p.Sequence>sequence;}
   public bool Accept(WirePacket.Decoded p,string peer,long now){
    if(p==null||p.Type!=1)return false;ControlFrame frame=ControlFrame.Decode(p.Payload);if(frame==null)return false;
    if(!assigned||endpoint!=peer||!WirePacket.Equal(session,p.Session)){

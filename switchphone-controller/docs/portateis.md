@@ -34,7 +34,7 @@ O caminho Nintendo atual envia botões, direcional e analógicos. Movimento IMU 
 
 ## Portáteis Android como controle
 
-Um aparelho Android 9+ pode executar o APK como superfície de controle. Para Bluetooth, o fabricante precisa disponibilizar HID Device; para mira por movimento, o aparelho precisa ter giroscópio e acelerômetro. Wi-Fi local com o auxiliar Windows é a alternativa ao Bluetooth para PC. Instalar o APK num portátil Android não transforma esse aparelho em receptor de comandos do celular.
+Um aparelho Android 9+ pode executar o APK como superfície de controle. Para Bluetooth, o fabricante precisa disponibilizar HID Device; para mira por movimento, o aparelho precisa ter giroscópio e acelerômetro. Wi-Fi local com o auxiliar Windows é a alternativa ao Bluetooth para PC; a câmera opcional permite conectar lendo o QR, e os dados manuais ficam em Avançado. Instalar o APK num portátil Android não transforma esse aparelho em receptor de comandos do celular.
 
 ## Steam Deck e SteamOS
 

@@ -40,6 +40,21 @@ class WireChecks {
    Thread.Sleep(270);receiver.Tick();Check(!receiver.Connected&&target.Last.Equals(new XboxReport())&&target.Disposals==0,"lost Wi-Fi releases all inputs without removing Xbox");bytes=codec.Encode(1,s,2,Frame());client.Send(bytes,bytes.Length,destination);Thread.Sleep(20);receiver.Tick();Check(receiver.Connected&&receiver.Reports==2,"same session resumes after lost packets");}
   Check(target.Disposals==1,"manual dispose removes target once");
  }
+ static void Metadata(){
+  FakeXbox target=new FakeXbox();using(WifiReceiver receiver=new WifiReceiver(0,target,IPAddress.Loopback))using(UdpClient phone=new UdpClient(new IPEndPoint(IPAddress.Loopback,0)))using(UdpClient stranger=new UdpClient(new IPEndPoint(IPAddress.Loopback,0))){
+   WirePacket codec=new WirePacket(receiver.Code);byte[] s=Session(16);IPEndPoint destination=new IPEndPoint(IPAddress.Loopback,receiver.LocalPort);
+   Action<UdpClient,byte,byte[],ulong,byte[]> send=(client,type,session,sequence,payload)=>{byte[] bytes=codec.Encode(type,session,sequence,payload);client.Send(bytes,bytes.Length,destination);Thread.Sleep(10);receiver.Tick();};
+   byte[] name=System.Text.Encoding.UTF8.GetBytes("\u0001Xiaomi Teste");
+   send(phone,4,s,2,name);Check(receiver.DeviceName=="Celular"&&!receiver.Connected,"metadata cannot establish connection");
+   send(phone,1,s,1,Frame());send(phone,4,s,2,name);Check(receiver.DeviceName=="Xiaomi Teste"&&receiver.Reports==1,"authenticated name without input report");
+   byte[] other=System.Text.Encoding.UTF8.GetBytes("\u0001Outro");send(stranger,4,s,3,other);Check(receiver.DeviceName=="Xiaomi Teste","metadata endpoint bound");
+   send(phone,4,Session(17),3,other);Check(receiver.DeviceName=="Xiaomi Teste","metadata session bound");
+   send(phone,4,s,2,other);Check(receiver.DeviceName=="Xiaomi Teste","metadata replay rejected");
+   send(phone,4,s,3,new byte[]{1,0xc3,0x28});send(phone,4,s,4,new byte[]{1,65,10,66});send(phone,4,s,5,new byte[98]);Check(receiver.DeviceName=="Xiaomi Teste","malformed names ignored");
+   Thread.Sleep(270);send(phone,4,s,6,other);Check(!receiver.Connected&&receiver.DeviceName=="Xiaomi Teste"&&target.Last.Equals(new XboxReport()),"metadata cannot extend input liveness");
+   send(phone,1,s,7,Frame());send(phone,4,s,8,other);Check(receiver.Connected&&receiver.DeviceName=="Outro","resumed input allows current metadata");
+  }
+ }
  static byte[] Request(uint type,byte[] payload){byte[] bytes=new byte[20+payload.Length];Buffer.BlockCopy(new byte[]{68,83,85,67},0,bytes,0,4);Buffer.BlockCopy(BitConverter.GetBytes((ushort)1001),0,bytes,4,2);Buffer.BlockCopy(BitConverter.GetBytes((ushort)(bytes.Length-16)),0,bytes,6,2);Buffer.BlockCopy(BitConverter.GetBytes(type),0,bytes,16,4);Buffer.BlockCopy(payload,0,bytes,20,payload.Length);Buffer.BlockCopy(BitConverter.GetBytes(DsuServer.Crc(bytes)),0,bytes,8,4);return bytes;}
  static void Dsu(){
   ControlFrame frame=ControlFrame.Decode(Frame());frame.MotionAvailable=true;frame.Motion[0]=1;frame.Motion[5]=9.80665f;byte[] bytes=DsuServer.Data(frame,7,123456);
@@ -49,5 +64,5 @@ class WireChecks {
  }
  static void Interop(string input,string output){WirePacket codec=new WirePacket("00112233445566778899");byte[] java=File.ReadAllBytes(input),payload=new byte[64],iv=new byte[16];for(int i=0;i<64;i++)payload[i]=(byte)i;for(int i=0;i<16;i++)iv[i]=(byte)i;byte[] encoded=codec.Encode(1,Session(16),0x0102030405060708UL,payload,iv);Check(WirePacket.Equal(encoded,java),"Java and C# exact encrypted vector");WirePacket.Decoded d=codec.Decode(java);Check(d!=null&&d.Sequence==0x0102030405060708UL&&WirePacket.Equal(payload,d.Payload),"Java accepted by C#");File.WriteAllBytes(output,codec.Encode(2,Session(16),0x0102030405060709UL,new byte[]{160,80,78,72,0,0,1,0},iv));
   WirePacket.Decoded packet=codec.Decode(File.ReadAllBytes(input+".frame"));ControlFrame frame=ControlFrame.Decode(packet.Payload);XboxReport r=frame.Xbox();Check(frame.Buttons==0x30c1&&frame.Hat==1&&r.Buttons==0x10c9,"Java buttons and hat reach XInput");Check(r.LeftTrigger==64&&r.RightTrigger==191&&r.LeftX==9830&&r.LeftY==22937&&r.RightX==8192&&r.RightY==16383,"Java native axis and trigger resolution reaches XInput");Check(frame.MouseX==12&&frame.MouseY==-7&&frame.Wheel==120&&frame.Battery==85&&frame.MotionAvailable&&frame.Motion[0]==.5f,"Java pointer, battery and sensors decoded by C#");}
- static int Main(string[] args){try{Crypto();FramesAndPeers();Udp();Dsu();if(args.Length==2)Interop(args[0],args[1]);Console.WriteLine("Wi-Fi/DSU checks: "+checks+" (fake Xbox; loopback only; no desktop input injected)");return 0;}catch(Exception ex){Console.Error.WriteLine(ex.Message);return 1;}}
+ static int Main(string[] args){try{Crypto();FramesAndPeers();Udp();Metadata();Dsu();if(args.Length==2)Interop(args[0],args[1]);Console.WriteLine("Wi-Fi/DSU checks: "+checks+" (fake Xbox; loopback only; no desktop input injected)");return 0;}catch(Exception ex){Console.Error.WriteLine(ex.Message);return 1;}}
 }

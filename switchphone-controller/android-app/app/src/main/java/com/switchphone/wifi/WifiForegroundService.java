@@ -37,13 +37,13 @@ public final class WifiForegroundService extends Service implements PointerSessi
     }
     @Override public int onStartCommand(Intent intent,int flags,int startId){if(intent!=null&&"STOP".equals(intent.getAction()))disconnect();return START_NOT_STICKY;}
     @Override public IBinder onBind(Intent intent){return binder;}
-    public void connect(String host,int port,String code)throws Exception{
+    public void connect(String host,int port,String code)throws Exception{connect(new PairingQr(Collections.singletonList(host),port,code));}
+    public void connect(PairingQr pairing)throws Exception{
         if(worker!=null)throw new IllegalStateException("Desconecte a sessão atual primeiro.");
-        if(!host.matches("[0-9]{1,3}(\\.[0-9]{1,3}){3}")||port<1024||port>65535)throw new IllegalArgumentException("Informe o IPv4 local e a porta exibidos no PC.");
-        InetAddress address=InetAddress.getByName(host);if(!(address.isSiteLocalAddress()||address.isLinkLocalAddress()||address.isLoopbackAddress()))throw new IllegalArgumentException("Use o endereço local do PC; endereços públicos não são aceitos.");
-        WirePacket codec=new WirePacket(code);closed=false;failure="";feedbackSequence=sequence=sent=received=0;ackAt=0;connected=false;
-        socket=new DatagramSocket();socket.connect(address,port);socket.setSoTimeout(5);status="Aguardando confirmação do PC…";holdCpu();
-        worker=new Thread(()->run(codec),"Nordhub-local-wifi");worker.start();
+        List<InetAddress> candidates=new ArrayList<>();for(String host:pairing.hosts)candidates.add(InetAddress.getByName(host));
+        WirePacket codec=new WirePacket(pairing.code);closed=false;failure="";feedbackSequence=sequence=sent=received=0;ackAt=0;connected=false;
+        socket=new DatagramSocket();socket.setSoTimeout(5);status="Conectando ao computador…";holdCpu();
+        worker=new Thread(()->run(codec,candidates,pairing.port),"Nordhub-local-wifi");worker.start();
     }
     private void holdCpu(){wake.acquire(120000);main.removeCallbacks(renew);main.postDelayed(renew,60000);}
     @Override public void pointer(int x,int y,int scroll){features.pointer(x,y,scroll);}
@@ -51,17 +51,18 @@ public final class WifiForegroundService extends Service implements PointerSessi
     @Override public void click(boolean right){features.click(right);}
     @Override public void clearPointerState(){state.clear();features.clearPointerState();}
     public void visible(boolean value){features.visible(value);}
-    private void run(WirePacket codec){
-        long started=SystemClock.elapsedRealtime();byte[] buffer=new byte[256];DatagramPacket incoming=new DatagramPacket(buffer,buffer.length);
-        try{while(!closed){long iteration=SystemClock.elapsedRealtime(),now=iteration;byte[] bytes=codec.encode(WirePacket.INPUT,session,++sequence,features.frame());socket.send(new DatagramPacket(bytes,bytes.length));sent++;
+    private void run(WirePacket codec,List<InetAddress> candidates,int port){
+        long started=SystemClock.elapsedRealtime(),metadataAt=0;byte[] buffer=new byte[256];DatagramPacket incoming=new DatagramPacket(buffer,buffer.length);
+        try{while(!closed){long iteration=SystemClock.elapsedRealtime(),now=iteration;byte[] bytes=codec.encode(WirePacket.INPUT,session,++sequence,features.frame());if(socket.isConnected())socket.send(new DatagramPacket(bytes,bytes.length));else for(InetAddress candidate:candidates)try{socket.send(new DatagramPacket(bytes,bytes.length,candidate,port));}catch(java.io.IOException ignored){if(closed)break;}sent++;
             try{incoming.setLength(buffer.length);socket.receive(incoming);WirePacket.Decoded p=codec.decode(Arrays.copyOf(buffer,incoming.getLength()));
-                if(p!=null&&p.type()==WirePacket.FEEDBACK&&Arrays.equals(p.session(),session)&&p.sequence()>feedbackSequence&&PcFeedback.valid(p.payload())){feedbackSequence=p.sequence();received++;ackAt=SystemClock.elapsedRealtime();features.feedback(p.payload());}
+                if(candidates.contains(incoming.getAddress())&&incoming.getPort()==port&&p!=null&&p.type()==WirePacket.FEEDBACK&&Arrays.equals(p.session(),session)&&p.sequence()>feedbackSequence&&PcFeedback.valid(p.payload())){if(!socket.isConnected())socket.connect(incoming.getAddress(),port);feedbackSequence=p.sequence();received++;ackAt=SystemClock.elapsedRealtime();features.feedback(p.payload());}
 
             }catch(SocketTimeoutException ignored){}
             now=SystemClock.elapsedRealtime();boolean alive=ackAt>0&&now-ackAt<750;
             if(alive!=connected){connected=alive;state.clear();if(!alive)main.post(()->features.clearPointerState());main.post(()->{if(!closed)startForeground(42,notification(connected?"Controle conectado ao PC. Desconectar encerra a sessão.":"Sem resposta do PC; entradas liberadas."));});}
+            if(connected&&now-metadataAt>1000){metadataAt=now;String name=(Build.MANUFACTURER+" "+Build.MODEL).replaceAll("[\\p{Cntrl}]"," ").trim();byte[] model=name.getBytes(java.nio.charset.StandardCharsets.UTF_8);while(model.length>96){name=name.substring(0,name.length()-1);model=name.getBytes(java.nio.charset.StandardCharsets.UTF_8);}byte[] payload=new byte[model.length+1];payload[0]=1;System.arraycopy(model,0,payload,1,model.length);byte[] hello=codec.encode(WirePacket.HELLO,session,++sequence,payload);socket.send(new DatagramPacket(hello,hello.length));}
             status=connected?"Wi-Fi conectado • jogador Xbox confirmado pelo PC":"Aguardando PC: confira rede, código e porta.";
-            if(ackAt==0&&now-started>15000)throw new java.io.IOException("O PC não confirmou em 15s. Confira o código, rede local e a permissão do aplicativo no firewall.");
+            if(ackAt==0&&now-started>15000)throw new java.io.IOException("O PC não respondeu. Use a mesma rede, leia um QR novo e permita o auxiliar nas redes privadas do firewall.");
             Thread.sleep(Math.max(1,17-(SystemClock.elapsedRealtime()-iteration)));
         }}catch(Exception e){if(!closed){failure=e instanceof java.io.IOException&&e.getMessage()!=null?e.getMessage():"Conexão local interrompida: "+e.getClass().getSimpleName();status=failure;}}
         finally{closed=true;connected=false;state.clear();DatagramSocket current=socket;if(current!=null)current.close();worker=null;main.post(()->{features.close();stopSelf();});}

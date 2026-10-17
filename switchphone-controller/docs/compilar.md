@@ -24,6 +24,10 @@ Requer compilador .NET Framework x64 no Windows e a DLL x64 de [Nefarius.ViGEm.C
 .\tests\check-wifi.ps1 -ClientDll C:\dependencias\ViGEmClient64.dll -OutputDirectory C:\build\verificacao
 ```
 
+As bibliotecas QR estão incluídas para compilação offline: ZXing Core 3.5.4 no Android e ZXing.Net 0.16.11 para .NET 4.8. O build Windows confere o hash de `pc-companion/lib/zxing.dll`. Os [avisos de terceiros](terceiros.md) incluem as fontes e licenças.
+
+Os testes de QR verificam o formato, endereços locais, rejeição de dados inválidos, rotação e leitura em Java do QR produzido em C#. O teste de câmera cobre o buffer de luminância com espaçamento e preenchimento.
+
 Os testes de mapeamento e rede usam alvo Xbox simulado; a parte UDP exige acesso a 127.0.0.1. A interoperabilidade verifica pacotes e comandos Java/C# nos dois sentidos. Esses testes não substituem a verificação física do telefone, rádio e jogo.
 
 SHA-256 da DLL x64 esperada: `00303f99e1968d523fbd08a7c691d60d145b7335059ec593947841d124c10875`.

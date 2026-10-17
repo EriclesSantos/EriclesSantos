@@ -42,7 +42,7 @@ A mira soma o movimento ao analógico direito; isso permite usá-la onde há sup
 
 ## Movimento DSU no emulador
 
-Use Wi-Fi, habilite **Movimento DSU (emulador)** no auxiliar e ative um modo de giroscópio no celular. No emulador compatível, configure o servidor **127.0.0.1:26760**, slot/jogador 0. Os botões continuam no Xbox virtual; o movimento é separado. Se quiser somente movimento bruto, escolha o modo DSU para evitar sobrepor a mira no analógico direito.
+Use Wi-Fi, abra **Avançado** no auxiliar e habilite **Movimento para emuladores (DSU)** e ative um modo de giroscópio no celular. No emulador compatível, configure o servidor **127.0.0.1:26760**, slot/jogador 0. Os botões continuam no Xbox virtual; o movimento é separado. Se quiser somente movimento bruto, escolha o modo DSU para evitar sobrepor a mira no analógico direito.
 
 O servidor só escuta no próprio PC. Se a porta estiver ocupada, o auxiliar informa indisponibilidade do DSU e mantém o Xbox. A implementação segue os [campos públicos DSU/Cemuhook](https://github.com/v1993/cemuhook-protocol). O emulador precisa implementar esse protocolo.
 
@@ -52,7 +52,7 @@ O servidor só escuta no próprio PC. Se a porta estiver ocupada, o auxiliar inf
 
 ## Touchpad
 
-No Wi-Fi, habilite **Permitir touchpad como mouse** no auxiliar e escolha **Mais → Touchpad** no celular. A superfície muda para touchpad; **Mais → Voltar aos botões** retorna ao controle.
+No Wi-Fi, abra **Avançado → Permitir touchpad como mouse** no auxiliar e escolha **Mais → Touchpad** no celular. A superfície muda para touchpad; **Mais → Voltar aos botões** retorna ao controle.
 
 - Um dedo move o cursor; toque faz clique esquerdo.
 - Segure e mova para arrastar.
