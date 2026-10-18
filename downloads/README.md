@@ -1,14 +1,10 @@
-# Downloads — Nördhub ProController 0.3.1
+# Downloads · Nördhub ProController
 
-Os arquivos atuais e seus tutoriais estão na [release 0.3.1](https://github.com/EriclesSantos/EriclesSantos/releases/tag/v0.3.1).
+Os downloads e a documentação do aplicativo estão no [repositório próprio do projeto](https://github.com/EriclesSantos/nordhub-procontroller).
 
-| Arquivo | Download |
-|---|---|
-| Android 9+ | [APK 0.3.1](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-0.3.1.apk) |
-| Windows 10/11 x64 | [Auxiliar Windows](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-pc-0.3.1.zip) |
-| Código-fonte | [Fontes 0.3.1](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-source-0.3.1.zip) |
-| Integridade | [SHA-256 dos arquivos da release](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/SHA256SUMS.txt) |
+- [Release 0.3.1 e arquivos de integridade](https://github.com/EriclesSantos/nordhub-procontroller/releases/tag/v0.3.1).
+- [Baixar APK Android](https://github.com/EriclesSantos/nordhub-procontroller/releases/download/v0.3.1/nordhub-procontroller-0.3.1.apk).
+- [Baixar auxiliar Windows](https://github.com/EriclesSantos/nordhub-procontroller/releases/download/v0.3.1/nordhub-procontroller-pc-0.3.1.zip).
+- [Instalação, requisitos e tutoriais](https://github.com/EriclesSantos/nordhub-procontroller/blob/main/docs/computadores.md).
 
-[Projeto e layouts](../switchphone-controller/README.md) · [Computadores e programas necessários](../switchphone-controller/docs/computadores.md) · [Portáteis](../switchphone-controller/docs/portateis.md).
-
-Os nomes estáveis `nordhub-procontroller.apk` e `nordhub-procontroller-pc.zip` nesta pasta correspondem à 0.3.1. A release mantém os nomes com a versão. Consulte os requisitos dos guias antes de instalar. A atualização sobre a 0.2.8 preserva a assinatura; a migração de SwitchPhone 0.2.7 ou anterior exige reinstalação.
+As releases antigas deste repositório continuam disponíveis no histórico de distribuição.
