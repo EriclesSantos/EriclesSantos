@@ -1,11 +1,3 @@
-<!-- NORDHUB-PROCONTROLLER -->
-## Nördhub ProController
-
-Controle Android para Windows por Bluetooth/Wi-Fi local e Nintendo Switch com MissionControl. Layouts Nintendo, Xbox e PlayStation, perfis e ajustes de controle. Wi-Fi simplificado com leitura de QR Code no celular.
-
-[**Baixar o APK 0.3.1**](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-0.3.1.apk) · [Auxiliar Windows](https://github.com/EriclesSantos/EriclesSantos/releases/download/v0.3.1/nordhub-procontroller-pc-0.3.1.zip) · [Projeto, tutoriais e imagens](switchphone-controller/README.md)
-<!-- /NORDHUB-PROCONTROLLER -->
-
 <img widht= "100vw" src="https://capsule-render.vercel.app/api?type=waving&heigth-110&color=457d97"/>
 <!-- Banner Inicial -->
 
